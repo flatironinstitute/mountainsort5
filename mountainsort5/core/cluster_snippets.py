@@ -1,6 +1,6 @@
 from typing import Union
 import numpy as np
-from isosplit5 import isosplit6
+from isosplit5 import isosplit6 # I know this is confusing, sorry :)
 from .compute_pca_features import compute_pca_features
 
 

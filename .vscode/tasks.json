@@ -1,0 +1,26 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    // The "bash -ic" is needed here so that our ~/.bashrc gets sourced. See: https://github.com/microsoft/vscode/issues/29412
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Code generation",
+            "type": "shell",
+            "command": "bash -ic .vscode/tasks/code-generation.sh",
+            "presentation": {
+                "clear": true
+            },
+            "detail": "Run code generation"
+        },
+        {
+            "label": "Publish PyPI",
+            "type": "shell",
+            "command": "bash -ic .vscode/tasks/publish-pypi.sh",
+            "presentation": {
+                "clear": true
+            },
+            "detail": "Publish package to PyPI"
+        }
+    ]
+}

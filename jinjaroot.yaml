@@ -1,0 +1,8 @@
+projectName: mountainsort5
+pythonProjectVersion: 0.1.0
+projectAuthor: Jeremy Magland
+projectAuthorEmail: jmagland@flatironinstitute.org
+projectDescription:
+projectUrl: https://github.com/magland/mountainsort5
+projectBugTrackerUrl: https://github.com/magland/mountainsort5/issues
+pythonPackageDir: .

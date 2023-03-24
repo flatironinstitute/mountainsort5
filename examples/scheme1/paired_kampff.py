@@ -17,7 +17,7 @@ def main():
     #     print(f'{rec.study_name}/{rec.recording_name} {rec.num_channels} channels; {rec.duration_sec} sec')
 
     # select recording
-    rec = recordings[1] # 2015_09_03_Pair_9_0A 32 channels; 593.248 sec
+    rec = recordings[1] # 2015_09_03_Pair_9_0A 32 channels; 593.248 sec # example of bursting with lower amplitude spikes after the initial spike
 
     print(f'{rec.study_name}/{rec.recording_name} {rec.num_channels} channels; {rec.duration_sec} sec')
 
@@ -41,7 +41,7 @@ def main():
     sorting = ms5.sorting_scheme1(
         recording_preprocessed,
         sorting_parameters=ms5.SortingParameters(
-            detect_channel_radius=50,
+            detect_channel_radius=100,
             snippet_mask_radius=100
         )
     )

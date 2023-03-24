@@ -1,6 +1,5 @@
 from typing import Tuple, Union
 import numpy as np
-import time
 
 
 def detect_spikes(
@@ -26,7 +25,7 @@ def detect_spikes(
         adjacency.append([])
         for m2 in range(M):
             dist0 = np.sqrt(np.sum((channel_locations[m] - channel_locations[m2]) ** 2))
-            if channel_radius is None or (dist0 <= channel_radius):
+            if (channel_radius is None) or (dist0 <= channel_radius):
                 adjacency[m].append(m2)
     
     inds1, inds2 = np.nonzero(traces <= -detect_threshold)

@@ -13,6 +13,7 @@ class SortingParameters:
     snippet_T2: int=20
     snippet_mask_radius: Union[float, None]=None
     npca_per_branch: int=12
+    pairwise_merge_step: bool=True
 
     def check_valid(self, *, M: int, N: int, sampling_frequency: float, channel_locations: Union[np.ndarray, None]=None):
         if channel_locations is None:

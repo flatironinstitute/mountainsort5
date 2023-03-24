@@ -6,24 +6,24 @@ from ..core.SortingParameters import SortingParameters
 from ..core.detect_spikes import detect_spikes
 from ..core.extract_snippets import extract_snippets
 from ..core.cluster_snippets import cluster_snippets
+from ..core.compute_templates import compute_templates
+from ..core.pairwise_merge_step import pairwise_merge_step
 
 
 def sorting_scheme1(
     recording: si.BaseRecording, *,
-    channel_locations: Union[np.ndarray, None]=None,
     sorting_parameters: Union[SortingParameters, None]=None
 ):
     M = recording.get_num_channels()
     N = recording.get_num_frames()
     sampling_frequency = recording.sampling_frequency
 
+    channel_locations = recording.get_channel_locations()
+
     if sorting_parameters is None:
         sorting_parameters = SortingParameters()
     sorting_parameters.check_valid(M=M, N=N, sampling_frequency=sampling_frequency, channel_locations=channel_locations)
-
-    if channel_locations is None:
-        channel_locations = np.zeros((M, 1), dtype=np.float32)
-
+    
     print('Loading traces')
     traces = recording.get_traces()
 
@@ -61,6 +61,25 @@ def sorting_scheme1(
     )
     K = int(np.max(labels))
     print(f'Found {K} clusters')
+
+    print('Computing templates')
+    templates = compute_templates(snippets=snippets, labels=labels) # K x T x M
+    # peak_channel_indices = [np.argmin(np.min(templates[i], axis=0)) for i in range(K)]
+
+    if sorting_parameters.pairwise_merge_step:
+        print('Pairwise merge step')
+        times, labels = pairwise_merge_step(
+            templates=templates,
+            snippets=snippets,
+            labels=labels,
+            times=times,
+            detect_sign=sorting_parameters.detect_sign,
+            unit_ids=np.arange(1, K + 1).astype(np.int32),
+            detect_time_radius=time_radius
+        )
+
+    print('Reordering units')
+    # todo - conditionally
     
     sorting = si.NumpySorting.from_times_labels(times_list=[times], labels_list=[labels], sampling_frequency=sampling_frequency)
 

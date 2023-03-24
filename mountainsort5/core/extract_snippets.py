@@ -15,6 +15,8 @@ def extract_snippets(
     L = len(times)
 
     if mask_radius is not None:
+        assert channel_locations is not None
+        assert channels is not None
         adjacency = []
         for m in range(M):
             adjacency.append([])
@@ -30,6 +32,7 @@ def extract_snippets(
         t1 = times[j] - T1
         t2 = times[j] + T2
         if adjacency is not None:
+            assert channels is not None
             channel_inds = adjacency[channels[j]]
             snippets[j][:, channel_inds] = traces[t1:t2, channel_inds]
         else:

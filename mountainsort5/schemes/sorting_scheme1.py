@@ -64,7 +64,7 @@ def sorting_scheme1(
 
     print('Computing templates')
     templates = compute_templates(snippets=snippets, labels=labels) # K x T x M
-    # peak_channel_indices = [np.argmin(np.min(templates[i], axis=0)) for i in range(K)]
+    peak_channel_indices = [np.argmin(np.min(templates[i], axis=0)) for i in range(K)]
 
     if sorting_parameters.pairwise_merge_step:
         print('Pairwise merge step')
@@ -79,7 +79,15 @@ def sorting_scheme1(
         )
 
     print('Reordering units')
-    # todo - conditionally
+    # relabel so that units are ordered by channel
+    # and we also put any labels that are not used at the end
+    aa = peak_channel_indices
+    for k in range(1, K + 1):
+        inds = np.where(labels == k)[0]
+        if len(inds) == 0:
+            aa[k - 1] = np.Inf
+    new_labels_mapping = np.argsort(np.argsort(aa)) + 1 # too tricky! my head aches right now
+    labels = new_labels_mapping[labels - 1]
     
     sorting = si.NumpySorting.from_times_labels(times_list=[times], labels_list=[labels], sampling_frequency=sampling_frequency)
 

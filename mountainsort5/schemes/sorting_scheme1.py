@@ -14,11 +14,26 @@ def sorting_scheme1(
     recording: si.BaseRecording, *,
     sorting_parameters: Scheme1SortingParameters
 ):
+    """MountainSort 5 sorting scheme 1
+
+    Args:
+        recording (si.BaseRecording): SpikeInterface recording object
+        sorting_parameters (Scheme2SortingParameters): Sorting parameters
+
+    Returns:
+        si.BaseSorting: SpikeInterface sorting object
+    """
     M = recording.get_num_channels()
     N = recording.get_num_frames()
     sampling_frequency = recording.sampling_frequency
 
     channel_locations = recording.get_channel_locations()
+
+    print(f'Number of channels: {M}')
+    print(f'Number of timepoints: {N}')
+    print(f'Sampling frequency: {sampling_frequency} Hz')
+    for m in range(M):
+        print(f'Channel {m}: {channel_locations[m]}')
 
     sorting_parameters.check_valid(M=M, N=N, sampling_frequency=sampling_frequency, channel_locations=channel_locations)
     
@@ -35,10 +50,11 @@ def sorting_scheme1(
         detect_threshold=sorting_parameters.detect_threshold,
         detect_sign=sorting_parameters.detect_sign,
         margin_left=sorting_parameters.snippet_T1,
-        margin_right=sorting_parameters.snippet_T2
+        margin_right=sorting_parameters.snippet_T2,
+        verbose=True
     )
 
-    print('Extracting snippets')
+    print(f'Extracting {len(times)} snippets')
     snippets = extract_snippets( # L x T x M
         traces=traces,
         channel_locations=channel_locations,

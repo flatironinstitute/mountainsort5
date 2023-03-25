@@ -40,7 +40,7 @@ def main():
     print('Starting MountainSort5')
     sorting = ms5.sorting_scheme1(
         recording_preprocessed,
-        sorting_parameters=ms5.SortingParameters(
+        sorting_parameters=ms5.Scheme1SortingParameters(
             detect_channel_radius=100,
             snippet_mask_radius=100
         )

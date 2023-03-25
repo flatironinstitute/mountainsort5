@@ -10,6 +10,7 @@ from ..core.extract_snippets import extract_snippets
 from .sorting_scheme1 import sorting_scheme1
 from ..core.SnippetClassifier import SnippetClassifier
 from ..core.pairwise_merge_step import remove_duplicate_events
+from ..core.get_sampled_recording_for_training import get_sampled_recording_for_training
 
 
 # This is an extension of sorting_scheme1
@@ -17,12 +18,14 @@ def sorting_scheme2(
     recording: si.BaseRecording, *,
     sorting_parameters: Scheme2SortingParameters
 ) -> si.BaseSorting:
-    """
-    Inputs:
-        recording: a recording object
-        sorting_parameters: a SortingParameters object
+    """MountainSort 5 sorting scheme 2
+
+    Args:
+        recording (si.BaseRecording): SpikeInterface recording object
+        sorting_parameters (Scheme2SortingParameters): Sorting parameters
+
     Returns:
-        sorting: a sorting object
+        si.BaseSorting: SpikeInterface sorting object
     """
     M = recording.get_num_channels()
     N = recording.get_num_frames()
@@ -31,8 +34,19 @@ def sorting_scheme2(
 
     sorting_parameters.check_valid(M=M, N=N, sampling_frequency=sampling_frequency, channel_locations=channel_locations)
 
+    # Subsample the recording for training
+    if sorting_parameters.training_duration_sec is not None:
+        training_recording = get_sampled_recording_for_training(
+            recording=recording,
+            training_duration_sec=sorting_parameters.training_duration_sec,
+            mode=sorting_parameters.training_recording_sampling_mode
+        )
+    else:
+        training_recording = recording
+
+    # Run the first phase of spike sorting (same as sorting_scheme1)
     sorting1 = sorting_scheme1(
-        recording=recording,
+        recording=training_recording,
         sorting_parameters=Scheme1SortingParameters(
             detect_threshold=sorting_parameters.phase1_detect_threshold,
             detect_sign=sorting_parameters.detect_sign,
@@ -45,14 +59,14 @@ def sorting_scheme2(
             pairwise_merge_step=sorting_parameters.phase1_pairwise_merge_step
         )
     )
-
     times, labels = get_times_labels_from_sorting(sorting1)
     K = np.max(labels)
 
-    print('Loading traces')
-    traces = recording.get_traces()
-    snippets = extract_snippets(
-        traces=traces,
+    print('Loading training traces')
+    # Load the traces from the training recording
+    training_traces = training_recording.get_traces()
+    training_snippets = extract_snippets(
+        traces=training_traces,
         channel_locations=None,
         mask_radius=None,
         times=times,
@@ -62,10 +76,11 @@ def sorting_scheme2(
     )
 
     print('Training classifier')
+    # Train the classifier based on the labels obtained from the first phase sorting
     snippet_classifer = SnippetClassifier(npca=sorting_parameters.classifier_npca)
     for k in range(1, K + 1):
         inds0 = np.where(labels == k)[0]
-        snippets0 = snippets[inds0]
+        snippets0 = training_snippets[inds0]
         template0 = np.median(snippets0, axis=0) # T x M
         if sorting_parameters.detect_sign < 0:
             AA = -template0
@@ -86,52 +101,104 @@ def sorting_scheme2(
                 label=k,
                 offset=offset
             )
-    snippets = None # Free up memory
+    training_snippets = None # Free up memory
     print('Fitting model')
     snippet_classifer.fit()
-        
-    print('Detecting spikes')
-    time_radius = int(math.ceil(sorting_parameters.detect_time_radius_msec / 1000 * sampling_frequency))
-    times2, channel_indices2 = detect_spikes(
-        traces=traces,
-        channel_locations=channel_locations,
-        time_radius=time_radius,
-        channel_radius=sorting_parameters.detect_channel_radius,
-        detect_threshold=sorting_parameters.detect_threshold,
-        detect_sign=sorting_parameters.detect_sign,
-        margin_left=sorting_parameters.snippet_T1,
-        margin_right=sorting_parameters.snippet_T2
-    )
 
-    print('Extracting snippets')
-    snippets2 = extract_snippets(
-        traces=traces,
-        channel_locations=channel_locations,
-        mask_radius=sorting_parameters.snippet_mask_radius,
-        times=times2,
-        channel_indices=channel_indices2,
-        T1=sorting_parameters.snippet_T1,
-        T2=sorting_parameters.snippet_T2
-    )
+    # Now that we have the classifier, we can do the full sorting
+    # Iterate over time chunks, detect and classify all spikes, and collect the results
+    chunk_size = int(math.ceil(100e6 / recording.get_num_channels())) # size of chunks in samples
+    print(f'Chunk size: {chunk_size / recording.sampling_frequency} sec')
+    chunks = get_time_chunks(recording.get_num_samples(), chunk_size=chunk_size, padding=1000)
+    times_list = []
+    labels_list = []
+    for i, chunk in enumerate(chunks):
+        print(f'Time chunk {i + 1} of {len(chunks)}')
+        print('Loading traces')
+        traces_chunk = recording.get_traces(start_frame=chunk.start - chunk.padding_left, end_frame=chunk.end + chunk.padding_right)
+        print('Detecting spikes')
+        time_radius = int(math.ceil(sorting_parameters.detect_time_radius_msec / 1000 * sampling_frequency))
+        times_chunk, channel_indices_chunk = detect_spikes(
+            traces=traces_chunk,
+            channel_locations=channel_locations,
+            time_radius=time_radius,
+            channel_radius=sorting_parameters.detect_channel_radius,
+            detect_threshold=sorting_parameters.detect_threshold,
+            detect_sign=sorting_parameters.detect_sign,
+            margin_left=sorting_parameters.snippet_T1,
+            margin_right=sorting_parameters.snippet_T2,
+            verbose=False
+        )
 
-    print('Classifying snippets')
-    timer = time.time()
-    labels2, offsets2 = snippet_classifer.classify_snippets(snippets2)
-    times2 = times2 - offsets2
-    elapsed = time.time() - timer
-    print(f'Elapsed time for classifying snippets: {elapsed} sec')
+        print('Extracting snippets')
+        snippets2 = extract_snippets(
+            traces=traces_chunk,
+            channel_locations=channel_locations,
+            mask_radius=sorting_parameters.snippet_mask_radius,
+            times=times_chunk,
+            channel_indices=channel_indices_chunk,
+            T1=sorting_parameters.snippet_T1,
+            T2=sorting_parameters.snippet_T2
+        )
 
-    # now that we offset them we need to resort
-    sort_inds = np.argsort(times2)
-    times2 = times2[sort_inds]
-    labels2 = labels2[sort_inds]
+        print('Classifying snippets')
+        labels_chunk, offsets_chunk = snippet_classifer.classify_snippets(snippets2)
+        times_chunk = times_chunk - offsets_chunk
 
-    print('Remove duplicates')
-    times2, labels2 = remove_duplicate_events(times2, labels2, tol=time_radius)
+        # now that we offset them we need to re-sort
+        sort_inds = np.argsort(times_chunk)
+        times_chunk = times_chunk[sort_inds]
+        labels_chunk = labels_chunk[sort_inds]
 
-    sorting2 = si.NumpySorting.from_times_labels([times2], [labels2], sampling_frequency=recording.sampling_frequency)
+        print('Removing duplicates')
+        times_chunk, labels_chunk = remove_duplicate_events(times_chunk, labels_chunk, tol=time_radius)
+
+        # remove events in the margins
+        valid_inds = np.where((chunk.padding_left <= times_chunk) & (times_chunk < chunk.total_size - chunk.padding_right))[0]
+        times_chunk = times_chunk[valid_inds]
+        labels_chunk = labels_chunk[valid_inds]
+
+        # don't forget to add the chunk start time
+        times_list.append(times_chunk + chunk.start - chunk.padding_left)
+        labels_list.append(labels_chunk)
+
+    # Now concatenate the results
+    times_concat = np.concatenate(times_list)
+    labels_concat = np.concatenate(labels_list)
+
+    # Now create a new sorting object from the times and labels results
+    sorting2 = si.NumpySorting.from_times_labels([times_concat], [labels_concat], sampling_frequency=recording.sampling_frequency)
 
     return sorting2
+
+class TimeChunk:
+    def __init__(self, start: int, end: int, padding_left: int, padding_right: int):
+        self.start = start
+        self.end = end
+        self.padding_left = padding_left
+        self.padding_right = padding_right
+        self.total_size = self.end - self.start + padding_left + padding_right
+
+def get_time_chunks(num_samples: int, chunk_size: int, padding: int) -> List[TimeChunk]:
+    """Get time chunks
+    Inputs:
+        num_samples: number of samples in the recording
+        chunk_size: size of each chunk in samples
+        padding: padding on each side of the chunk in samples
+    Returns:
+        chunks: list of TimeChunk objects
+    """
+    chunks = []
+    start = 0
+    while start < num_samples:
+        end = start + chunk_size
+        if end > num_samples:
+            end = num_samples
+        padding_left = min(padding, start)
+        padding_right = min(padding, num_samples - end)
+        chunks.append(TimeChunk(start=start, end=end, padding_left=padding_left, padding_right=padding_right))
+        start = end
+    return chunks
 
 def subsample_snippets(snippets: np.ndarray, max_num: int) -> np.ndarray:
     """Subsample snippets

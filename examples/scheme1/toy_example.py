@@ -21,7 +21,7 @@ def main():
     print('Starting MountainSort5')
     sorting = ms5.sorting_scheme1(
         recording_preprocessed,
-        sorting_parameters=ms5.SortingParameters()
+        sorting_parameters=ms5.Scheme1SortingParameters()
     )
     
     elapsed_sec = time.time() - timer

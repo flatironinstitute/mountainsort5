@@ -1,5 +1,6 @@
 import os
 import time
+import shutil
 import spikeinterface.extractors as se
 import spikeinterface.preprocessing as spre
 import spikeinterface.comparison as sc
@@ -9,7 +10,7 @@ from spikeforest.load_spikeforest_recordings.SFRecording import SFRecording
 import spikeinterface as si
 
 def main():
-    recording, sorting_true = se.toy_example(duration=60, num_channels=8, num_units=16, sampling_frequency=30000, num_segments=1, seed=0)
+    recording, sorting_true = se.toy_example(duration=60 * 30, num_channels=16, num_units=32, sampling_frequency=30000, num_segments=1, seed=0)
 
     timer = time.time()
 
@@ -18,12 +19,13 @@ def main():
     recording_preprocessed: si.BaseRecording = spre.whiten(recording_filtered)
 
     # sorting
-    print('Starting MountainSort5 (scheme 1b)')
+    print('Starting MountainSort5 (scheme 2)')
     sorting = ms5.sorting_scheme2(
         recording_preprocessed,
         sorting_parameters=ms5.Scheme2SortingParameters(
             phase1_detect_channel_radius=150,
-            detect_channel_radius=50
+            detect_channel_radius=50,
+            training_duration_sec=60
         )
     )
     
@@ -38,6 +40,8 @@ def main():
     #######################################################################
 
     if os.getenv('GENERATE_VISUALIZATION_OUTPUT') == '1':
+        if os.path.exists('output/toy_example'):
+            shutil.rmtree('output/toy_example')
         rec = SFRecording({
             'name': 'toy_example',
             'studyName': 'toy_example',

@@ -5,6 +5,17 @@ from dataclasses import dataclass
 
 @dataclass
 class Scheme1SortingParameters:
+    """Parameters for MountainSort sorting scheme 1
+    - detect_threshold: the threshold for detection of whitened data
+    - detect_channel_radius: the radius (in units of channel locations) for exluding nearby channels from detection
+    - detect_time_radius_msec: the radius (in msec) for excluding nearby events from detection
+    - detect_sign: the sign of the threshold for detection (1, -1, or 0)
+    - snippet_T1: the number of timepoints before the event to include in the snippet
+    - snippet_T2: the number of timepoints after the event to include in the snippet
+    - snippet_mask_radius: the radius (in units of channel locations) for making a snippet around the central channel
+    - npca_per_branch: the number of PCA components to compute for each branch of clustering
+    - pairwise_merge_step: whether to do the pairwise merge step
+    """
     detect_threshold: float=5.5
     detect_channel_radius: Union[float, None]=None
     detect_time_radius_msec: float=0.5
@@ -16,6 +27,7 @@ class Scheme1SortingParameters:
     pairwise_merge_step: bool=True
 
     def check_valid(self, *, M: int, N: int, sampling_frequency: float, channel_locations: Union[np.ndarray, None]=None):
+        """Internal function for checking validity of parameters"""
         if channel_locations is None:
             channel_locations = np.zeros((M, 1), dtype=np.float32)
         assert channel_locations.shape[0] == M, 'Shape mismatch between traces and channel locations'

@@ -1,10 +1,29 @@
 import numpy as np
-from typing import Union
+from typing import Union, Literal
 from dataclasses import dataclass
 
 
 @dataclass
 class Scheme2SortingParameters:
+    """Parameters for MountainSort sorting scheme 2
+
+    See Scheme1SortingParameters for more details on the parameters below.
+
+    - phase1_detect_channel_radius: detect_channel_radius in phase 1
+    - detect_channel_radius: detect_channel_radius in phase 2
+    - phase1_detect_threshold: detect_threshold in phase 1
+    - phase1_detect_time_radius_msec: detect_time_radius_msec in phase 1
+    - detect_time_radius_msec: detect_time_radius_msec in phase 2
+    - phase1_npca_per_branch: npca_per_branch in phase 1
+    - phase1_pairwise_merge_step: pairwise_merge_step in phase 1
+    - detect_sign
+    - detect_threshold: detect_threshold in phase 2
+    - snippet_T1
+    - snippet_T2
+    - snippet_mask_radius
+    - max_num_snippets_per_training_batch: the maximum number of snippets to use for training the classifier in each batch
+    - classifier_npca: the number of principal components to use for the classifier
+    """
     phase1_detect_channel_radius: Union[float, None]
     detect_channel_radius: Union[float, None]
     phase1_detect_threshold: float=5.5
@@ -19,8 +38,11 @@ class Scheme2SortingParameters:
     snippet_mask_radius: Union[float, None]=None
     max_num_snippets_per_training_batch: int=200
     classifier_npca: int=60
+    training_duration_sec: Union[float, None]=None
+    training_recording_sampling_mode: Literal['initial', 'uniform']='initial'
 
     def check_valid(self, *, M: int, N: int, sampling_frequency: float, channel_locations: Union[np.ndarray, None]=None):
+        """Internal function for checking validity of parameters"""
         if channel_locations is None:
             channel_locations = np.zeros((M, 1), dtype=np.float32)
         assert channel_locations.shape[0] == M, 'Shape mismatch between traces and channel locations'

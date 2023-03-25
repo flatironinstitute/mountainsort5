@@ -1,7 +1,9 @@
 from typing import List
 import numpy as np
 from .compute_pca_features import compute_pca_features
-from isosplit5 import isosplit6
+# having trouble with isosplit6 - 16 channels on toy example - getting single cluster
+# from isosplit5 import isosplit6
+from isosplit5 import isosplit5
 
 
 def pairwise_merge_step(*, snippets: np.ndarray, templates: np.ndarray, labels: np.array, times: np.array, detect_sign: int, unit_ids: np.array, detect_time_radius: int) -> np.array:
@@ -95,7 +97,7 @@ def test_merge(snippets1: np.ndarray, snippets2: np.ndarray):
     V2 = snippets2.reshape((L2, T * M))
     Vall = np.concatenate([V1, V2], axis=0)
     features0 = compute_pca_features(Vall, npca=12) # should we hard-code this as 12?
-    labels0 = isosplit6(features0.T)
+    labels0 = isosplit5(features0.T)
     # not sure best way to test this, but for now we'll check that we only have single cluster after isosplit
     # after all, each cluster should not split on its own (branch cluster method)
     return np.max(labels0) == 1

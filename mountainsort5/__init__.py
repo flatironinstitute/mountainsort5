@@ -1,2 +1,4 @@
 from .schemes.sorting_scheme1 import sorting_scheme1
-from .core.SortingParameters import SortingParameters
+from .schemes.Scheme1SortingParameters import Scheme1SortingParameters
+from .schemes.sorting_scheme2 import sorting_scheme2
+from .schemes.Scheme2SortingParameters import Scheme2SortingParameters

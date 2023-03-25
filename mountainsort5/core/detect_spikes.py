@@ -18,7 +18,7 @@ def detect_spikes(
     if detect_sign > 0:
         traces = -traces # todo: figure out how to avoid making a copy
     elif detect_sign == 0:
-        traces = np.abs(traces) # todo: figure out how to avoid making a copy
+        traces = -np.abs(traces) # todo: figure out how to avoid making a copy
     
     adjacency = []
     for m in range(M):
@@ -38,7 +38,7 @@ def detect_spikes(
             candidate_values[inds2[i]].append(traces[inds1[i], inds2[i]])
 
     times = []
-    channels = []
+    channel_indices = []
     for m in range(M):
         nbhd = adjacency[m]
         print(f'm = {m} (nbhd size: {len(nbhd)})')
@@ -64,12 +64,12 @@ def detect_spikes(
                     jj += 1
             if okay:
                 times.append(t)
-                channels.append(m)
+                channel_indices.append(m)
     
     times = np.array(times, dtype=np.int32)
-    channels = np.array(channels, dtype=np.int32)
+    channel_indices = np.array(channel_indices, dtype=np.int32)
     inds = np.argsort(times)
     times = times[inds]
-    channels = channels[inds]
-    return times, channels
+    channel_indices = channel_indices[inds]
+    return times, channel_indices
 

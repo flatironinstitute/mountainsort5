@@ -7,7 +7,7 @@ def extract_snippets(
     channel_locations: Union[np.ndarray, None],
     mask_radius: Union[float, None],
     times: np.array,
-    channels: Union[np.array, None],
+    channel_indices: Union[np.array, None],
     T1: int,
     T2: int
 ) -> np.ndarray:
@@ -16,7 +16,7 @@ def extract_snippets(
 
     if mask_radius is not None:
         assert channel_locations is not None
-        assert channels is not None
+        assert channel_indices is not None
         adjacency = []
         for m in range(M):
             adjacency.append([])
@@ -32,8 +32,8 @@ def extract_snippets(
         t1 = times[j] - T1
         t2 = times[j] + T2
         if adjacency is not None:
-            assert channels is not None
-            channel_inds = adjacency[channels[j]]
+            assert channel_indices is not None
+            channel_inds = adjacency[channel_indices[j]]
             snippets[j][:, channel_inds] = traces[t1:t2, channel_inds]
         else:
             snippets[j] = traces[t1:t2]

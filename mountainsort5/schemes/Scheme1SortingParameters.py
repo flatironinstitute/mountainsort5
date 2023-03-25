@@ -4,7 +4,7 @@ from dataclasses import dataclass
 
 
 @dataclass
-class SortingParameters:
+class Scheme1SortingParameters:
     detect_threshold: float=5.5
     detect_channel_radius: Union[float, None]=None
     detect_time_radius_msec: float=0.5

@@ -2,7 +2,7 @@ from typing import Union
 import numpy as np
 import math
 import spikeinterface as si
-from ..core.SortingParameters import SortingParameters
+from .Scheme1SortingParameters import Scheme1SortingParameters
 from ..core.detect_spikes import detect_spikes
 from ..core.extract_snippets import extract_snippets
 from ..core.cluster_snippets import cluster_snippets
@@ -12,7 +12,7 @@ from ..core.pairwise_merge_step import pairwise_merge_step
 
 def sorting_scheme1(
     recording: si.BaseRecording, *,
-    sorting_parameters: Union[SortingParameters, None]=None
+    sorting_parameters: Scheme1SortingParameters
 ):
     M = recording.get_num_channels()
     N = recording.get_num_frames()
@@ -20,8 +20,6 @@ def sorting_scheme1(
 
     channel_locations = recording.get_channel_locations()
 
-    if sorting_parameters is None:
-        sorting_parameters = SortingParameters()
     sorting_parameters.check_valid(M=M, N=N, sampling_frequency=sampling_frequency, channel_locations=channel_locations)
     
     print('Loading traces')
@@ -29,7 +27,7 @@ def sorting_scheme1(
 
     print('Detecting spikes')
     time_radius = int(math.ceil(sorting_parameters.detect_time_radius_msec / 1000 * sampling_frequency))
-    times, channels = detect_spikes(
+    times, channel_indices = detect_spikes(
         traces=traces,
         channel_locations=channel_locations,
         time_radius=time_radius,
@@ -46,7 +44,7 @@ def sorting_scheme1(
         channel_locations=channel_locations,
         mask_radius=sorting_parameters.snippet_mask_radius,
         times=times,
-        channels=channels,
+        channel_indices=channel_indices,
         T1=sorting_parameters.snippet_T1,
         T2=sorting_parameters.snippet_T2
     )

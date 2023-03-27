@@ -42,11 +42,14 @@ def extract_snippets(
 def extract_snippets_in_channel_neighborhood(
     traces: np.ndarray, *,
     times: np.array,
-    neighborhood: List[int],
+    neighborhood: Union[List[int], None],
     T1: int,
     T2: int
 ) -> np.ndarray:
     L = len(times)
+
+    if neighborhood is None:
+        neighborhood = list(range(traces.shape[1]))
 
     snippets = np.zeros((L, T1 + T2, len(neighborhood)), dtype=np.float32)
     for j in range(L):

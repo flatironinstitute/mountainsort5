@@ -2,7 +2,7 @@
 
 This is an updated version of the [MountainSort](https://www.sciencedirect.com/science/article/pii/S0896627317307456) spike sorting algorithm. An implementation of the previous version of this algorithm can be [found here](https://github.com/magland/mountainsort4).
 
-* Uses [Isosplit clustering](https://github.com/magland/isosplit6) ([preprint](https://arxiv.org/abs/1508.04841))
+* Uses [Isosplit clustering](https://github.com/magland/isosplit6)
 * Designed to be easy to use and to work well out of the box
 * Runs fast on a CPU
 * Uses SpikeInterface for I/O and preprocessing

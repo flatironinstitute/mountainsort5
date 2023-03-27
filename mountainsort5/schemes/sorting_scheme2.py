@@ -1,7 +1,6 @@
 from typing import Dict, Tuple, List, Union
 import numpy as np
 import math
-import time
 import spikeinterface as si
 from .Scheme2SortingParameters import Scheme2SortingParameters
 from .Scheme1SortingParameters import Scheme1SortingParameters
@@ -16,8 +15,11 @@ from ..core.get_sampled_recording_for_training import get_sampled_recording_for_
 # This is an extension of sorting_scheme1
 def sorting_scheme2(
     recording: si.BaseRecording, *,
-    sorting_parameters: Scheme2SortingParameters
-) -> si.BaseSorting:
+    sorting_parameters: Scheme2SortingParameters,
+    return_snippet_classifiers: bool = False,
+    reference_snippet_classifiers: Union[Dict[int, SnippetClassifier], None] = None,
+    label_offset: int = 0
+) -> Union[si.BaseSorting, Tuple[si.BaseSorting, Dict[int, SnippetClassifier]]]:
     """MountainSort 5 sorting scheme 2
 
     Args:
@@ -61,6 +63,7 @@ def sorting_scheme2(
     )
     times, labels = get_times_labels_from_sorting(sorting1)
     K = np.max(labels)
+    labels = labels + label_offset
 
     print('Loading training traces')
     # Load the traces from the training recording
@@ -100,7 +103,7 @@ def sorting_scheme2(
         )
         snippet_classifiers[m].add_training_snippets(random_snippets, label=0, offset=0)
 
-    for k in range(1, K + 1):
+    for k in range(label_offset + 1, label_offset + K + 1):
         inds0 = np.where(labels == k)[0]
         snippets0 = training_snippets[inds0]
         template0 = np.median(snippets0, axis=0) # T x M
@@ -143,6 +146,7 @@ def sorting_scheme2(
     chunks = get_time_chunks(recording.get_num_samples(), chunk_size=chunk_size, padding=1000)
     times_list = []
     labels_list = []
+    labels_reference_list = [] if reference_snippet_classifiers is not None else None
     for i, chunk in enumerate(chunks):
         print(f'Time chunk {i + 1} of {len(chunks)}')
         print('Loading traces')
@@ -163,6 +167,7 @@ def sorting_scheme2(
 
         print('Extracting and classifying snippets')
         labels_chunk = np.zeros(len(times_chunk), dtype='int32')
+        labels_reference_chunk = np.zeros(len(times_chunk), dtype='int32') if reference_snippet_classifiers is not None else None
         for m in range(M):
             inds = np.where(channel_indices_chunk == m)[0]
             if len(inds) > 0:
@@ -177,37 +182,88 @@ def sorting_scheme2(
                 if labels_chunk_m is not None:
                     labels_chunk[inds] = labels_chunk_m
                     times_chunk[inds] = times_chunk[inds] - offsets_chunk_m
+                if reference_snippet_classifiers is not None:
+                    labels_reference_chunk_m, _ = reference_snippet_classifiers[m].classify_snippets(snippets2)
+                    if labels_reference_chunk_m is not None:
+                        labels_reference_chunk[inds] = labels_reference_chunk_m
 
         # remove events with label 0
         valid_inds = np.where(labels_chunk > 0)[0]
         times_chunk = times_chunk[valid_inds]
         labels_chunk = labels_chunk[valid_inds]
+        labels_reference_chunk = labels_reference_chunk[valid_inds] if reference_snippet_classifiers is not None else None
 
         # now that we offset them we need to re-sort
         sort_inds2 = np.argsort(times_chunk)
         times_chunk = times_chunk[sort_inds2]
         labels_chunk = labels_chunk[sort_inds2]
+        labels_reference_chunk = labels_reference_chunk[sort_inds2] if reference_snippet_classifiers is not None else None
 
         print('Removing duplicates')
-        times_chunk, labels_chunk = remove_duplicate_events(times_chunk, labels_chunk, tol=time_radius)
+        new_inds = remove_duplicate_events(times_chunk, labels_chunk, tol=time_radius)
+        times_chunk = times_chunk[new_inds]
+        labels_chunk = labels_chunk[new_inds]
+        labels_reference_chunk = labels_reference_chunk[new_inds] if reference_snippet_classifiers is not None else None
 
         # remove events in the margins
         valid_inds = np.where((chunk.padding_left <= times_chunk) & (times_chunk < chunk.total_size - chunk.padding_right))[0]
         times_chunk = times_chunk[valid_inds]
         labels_chunk = labels_chunk[valid_inds]
+        labels_reference_chunk = labels_reference_chunk[valid_inds] if reference_snippet_classifiers is not None else None
 
         # don't forget to add the chunk start time
         times_list.append(times_chunk + chunk.start - chunk.padding_left)
         labels_list.append(labels_chunk)
+        if reference_snippet_classifiers is not None:
+            labels_reference_list.append(labels_reference_chunk)
 
     # Now concatenate the results
     times_concat = np.concatenate(times_list)
     labels_concat = np.concatenate(labels_list)
+    labels_reference_concat = np.concatenate(labels_reference_list) if reference_snippet_classifiers is not None else None
+
+    if reference_snippet_classifiers is not None:
+        mapping = get_labels_to_reference_labels_mapping(labels_concat, labels_reference_concat, label_offset=label_offset)
+        print('==== mapping =======================')
+        for k1, k2 in mapping.items():
+            print(f'{k1} -> {k2}')
+        print('====================================')
+        for m in range(M):
+            snippet_classifiers[m].apply_label_mapping(mapping)
+        for k1, k2 in mapping.items():
+            labels_concat[labels_concat == k1] = k2
 
     # Now create a new sorting object from the times and labels results
     sorting2 = si.NumpySorting.from_times_labels([times_concat], [labels_concat], sampling_frequency=recording.sampling_frequency)
 
-    return sorting2
+    if return_snippet_classifiers:
+        return sorting2, snippet_classifiers
+    else:
+        return sorting2
+
+# Here's what this function does:
+# 1. For each unit, find the matching unit in the reference (has to be a MUTUAL >0.5 overlap)
+# 2. If the matching unit is found, then map the unit to the matching unit
+# 3. If the matching unit is not found, then map it to the smallest unused label starting with label_offset+1
+def get_labels_to_reference_labels_mapping(labels: np.ndarray, labels_reference: np.ndarray, *, label_offset) -> Dict[int, int]:
+    mapping: Dict[int, int] = {}
+    unique_labels = np.sort(np.unique(labels))
+    last_used_k = label_offset
+    for k in unique_labels:
+        mapping[k] = None # initialize to None, if it stays as None, then we will need to create a new label
+        inds = np.where(labels == k)[0]
+        a = labels_reference[inds]
+        k_refs, k_ref_counts = np.unique(a, return_counts=True)
+        for ii in range(len(k_refs)):
+            if k_ref_counts[ii] > 0.5 * len(inds): # the 0.5 is chosen so we don't map to the same unit twice
+                inds_ref = np.where(labels_reference == k_refs[ii])[0] # import to test the other way around
+                if k_ref_counts[ii] > 0.5 * len(inds_ref): # mutual overlap
+                    mapping[k] = k_refs[ii] # map to the reference label
+                    break
+        if mapping[k] is None: # if not mapped to reference label, then create a new label
+            mapping[k] = last_used_k + 1
+            last_used_k = mapping[k]
+    return mapping
 
 class TimeChunk:
     def __init__(self, start: int, end: int, padding_left: int, padding_right: int):

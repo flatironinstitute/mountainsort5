@@ -1,4 +1,4 @@
-from typing import List, Tuple, Union
+from typing import List, Tuple, Union, Dict
 import numpy as np
 from dataclasses import dataclass
 from sklearn import decomposition
@@ -34,6 +34,9 @@ class SnippetClassifier:
         nearest_inds = self.nearest_neighbor_model.kneighbors(Y, n_neighbors=2, return_distance=False)
         inds = nearest_inds[:, 1] # don't use the first because that could be an identical match
         return self.all_training_labels[inds], self.all_training_offsets[inds]
+    def apply_label_mapping(self, mapping: Dict[int, int]):
+        for k1, k2 in mapping.items():
+            self.all_training_labels[self.all_training_labels == k1] = k2
 
 @dataclass
 class TrainingBatch:

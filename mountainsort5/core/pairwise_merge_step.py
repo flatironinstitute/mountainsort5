@@ -58,7 +58,10 @@ def pairwise_merge_step(*, snippets: np.ndarray, templates: np.ndarray, labels: 
     new_labels = new_labels[sort_inds]
     
     # After merges, we may now have duplicate events - let's remove them
-    new_times, new_labels = remove_duplicate_events(new_times, new_labels, tol=detect_time_radius)
+    new_inds = remove_duplicate_events(new_times, new_labels, tol=detect_time_radius)
+    print(f'Removing {len(times) - len(new_inds)} duplicate events')
+    new_times = new_times[new_inds]
+    new_labels = new_labels[new_inds]
 
     return new_times, new_labels
 
@@ -71,8 +74,7 @@ def remove_duplicate_events(times: np.array, labels: np.array, *, tol: int):
         inds_duplicate = find_duplicate_times(unit_times, tol=tol)
         new_labels[unit_inds[inds_duplicate]] = 0
     inds_nonzero = np.nonzero(new_labels)[0]
-    print(f'Removing {len(times) - len(inds_nonzero)} duplicate events')
-    return times[inds_nonzero], new_labels[inds_nonzero]
+    return inds_nonzero
 
 def find_duplicate_times(times: np.array, *, tol: int):
     ret = []

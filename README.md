@@ -82,11 +82,11 @@ This is the simplest sorting scheme and is useful for quick tests. The entire re
 
 The second sorting scheme is generally preferred over scheme 1 because it can handle larger datasets that cannot be fully loaded into memory, and also has other potential advantages in terms of accurately detecting and labeling spikes.
 
-In phase 1, the first scheme is used as a training step, performing unsupervised clustering on a subset of the dataset. Then in phase 2, a classifier is trained based on the labels of the training step. The classifier is then used to label the remaining data.
+In phase 1, the first scheme is used as a training step, performing unsupervised clustering on a subset of the dataset. Then in phase 2, a set of classifiers are trained based on the labels of the training step. The classifiers are then used to label the remaining data.
 
 ### Sorting scheme 3
 
-This scheme does not yet exist. We are working to be able to track neurons over the course of a multi-day recording.
+Sorting scheme 3 is designed to handle long recordings that may involve waveform drift. The recording is divided into blocks, and each being is spike sorted using scheme 2. Then the snippet classifiers are used to associate matching units between blocks.
 
 ## General parameters
 

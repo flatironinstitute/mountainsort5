@@ -1,8 +1,6 @@
 from typing import Union
 import numpy as np
-# having a problem with isosplit6 - use 16 channels on toy example - getting a single cluster
-# from isosplit5 import isosplit6 # I know this is confusing, sorry :)
-from isosplit5 import isosplit5 # I know this is confusing, sorry :)
+from isosplit6 import isosplit6
 from .compute_pca_features import compute_pca_features
 
 
@@ -20,7 +18,7 @@ def cluster_snippets(
     M = snippets_sub.shape[2]
     features = compute_pca_features(snippets_sub.reshape((L, T * M)), npca=npca_per_branch)
     snippets_sub = None # free up memory
-    labels = isosplit5(features.T)
+    labels = isosplit6(features)
     K = np.max(labels)
     if K <= 1:
         return labels

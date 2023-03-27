@@ -9,7 +9,7 @@ from spikeforest.load_spikeforest_recordings.SFRecording import SFRecording
 import spikeinterface as si
 
 def main():
-    recording, sorting_true = se.toy_example(duration=60 * 5, num_channels=16, num_units=32, sampling_frequency=30000, num_segments=1, seed=0)
+    recording, sorting_true = se.toy_example(duration=60 * 2, num_channels=8, num_units=16, sampling_frequency=30000, num_segments=1, seed=0)
 
     timer = time.time()
 

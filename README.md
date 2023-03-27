@@ -23,18 +23,25 @@ git pull
 
 **Dependencies**:
 
-Python, SpikeInterface, scikit-learn, isosplit5
+Python, SpikeInterface, scikit-learn, isosplit6
 
 ## Usage
 
-MountainSort5 is a Python package that operates on [SpikeInterface](https://github.com/spikeinterface/spikeinterface) recording and sorting objects. You can get started by reading the [SpikeInterface documentation](https://spikeinterface.readthedocs.io/en/latest/).
+MountainSort5 is a Python package that utilizes [SpikeInterface](https://github.com/spikeinterface/spikeinterface) recording and sorting objects. You can get started by reading the [SpikeInterface documentation](https://spikeinterface.readthedocs.io/en/latest/).
 
 Once you have a recording object, you can run MountainSort5 using the following code:
 
 ```python
+import spikeinterface as si
+import spikeinterface.preprocessing as spre
 import mountainsort5 as ms5
 
 recording = ... # load your recording using SpikeInterface
+
+# Make sure the recording is preprocessed appropriately
+# lazy preprocessing
+recording_filtered = spre.bandpass_filter(recording, freq_min=300, freq_max=6000)
+recording_preprocessed: si.BaseRecording = spre.whiten(recording_filtered)
 
 # use scheme 1
 sorting = ms5.sorting_scheme1(
@@ -48,18 +55,36 @@ sorting = ms5.sorting_scheme2(
     sorting_parameters=ms5.Scheme2SortingParameters(...)
 )
 
-# Now you have a sorting object that you can save to disk
+# Now you have a sorting object that you can save to disk or use for further analysis
 ```
 
 To give it a try with simulated data, run the following scripts in the examples directory:
 
 Scheme 1: [examples/scheme1/toy_example.py](./examples/scheme1/toy_example.py)
 
-Scheme 2: [examples/scheme2/toy_example.py](./examples/scheme2/toy_example.py).
+Scheme 2: [examples/scheme2/toy_example.py](./examples/scheme2/toy_example.py)
 
 ## Preprocessing
 
-MountainSort5 is designed to operate on preprocessed data, including bandpass filtering and whitening. The preprocessing steps should be performed using SpikeInterface as in the above examples. SpikeInterface provides a variety of [lazy preprocessing tools](https://spikeinterface.readthedocs.io/en/latest/modules/preprocessing.html), so that intermediate results do not need to be stored to disk.
+MountainSort5 is designed to operate on preprocessed data. You should bandpass filter and whiten the recording as shown in the examples. SpikeInterface provides a variety of [lazy preprocessing tools](https://spikeinterface.readthedocs.io/en/latest/modules/preprocessing.html), so that intermediate files do not need to be stored to disk.
+
+## Sorting schemes
+
+MountainSort5 is organized into multiple *sorting schemes*. Different experimental setups will be best served by using different schemes.
+
+### Sorting scheme 1
+
+This is the simplest sorting scheme and is useful for quick tests. The entire recording is loaded into memory, and clustering is performed in a single pass. In general, scheme 2 should be used intead since it has better handling of events that overlap in time, and works with larger datasets on limited RAM systems. Nevertheless, scheme 1 can be useful for testing and debugging, and is used as the first pass in scheme 2.
+
+### Sorting scheme 2
+
+The second sorting scheme is generally preferred over scheme 1 because it can handle larger datasets that cannot be fully loaded into memory, and also has other potential advantages in terms of accurately detecting and labeling spikes.
+
+In phase 1, the first scheme is used as a training step, performing unsupervised clustering on a subset of the dataset. Then in phase 2, a classifier is trained based on the labels of the training step. The classifier is then used to label the remaining data.
+
+### Sorting scheme 3
+
+This scheme does not yet exist. We are working to be able to track neurons over the course of a multi-day recording.
 
 ## General parameters
 
@@ -72,24 +97,6 @@ One of the trickiest parameters to set is the detection threshold (detect_thresh
 **Number of PCA features per branch (npca_per_branch)**
 
 MountainSort uses a branch method for clustering. After spike snippets are extracted from the preprocessed traces, dimension reduction via PCA is used prior to clustering. In the first step, npca_per_branch PCA features are computed, and then Isosplit clustering is performed. After this, assuming more than one cluster is found, each cluster becomes a new branch, and feature extraction from the original snippets is performed again within each branch separately, and Isosplit is used to subdivide the clusters further. This procedure is repeated until clustering returns a single cluster for each branch. The same number of PCA components (npca_per_branch) is used at each stage. The advantage of recomputing features on each branch is that the refined components can capture features that can more effectively distinguish between clusters within the same general region of overall feature space.
-
-## Sorting schemes
-
-The MountainSort5 algorithm is organized into multiple *sorting schemes*. Different experimental setups will be best served by using different schemes. For example, if you dataset is relatively small, say 10 minutes with 32 channels, then you'll probably want to use the simplest scheme: scheme 1, which processes everything in memory.
-
-### Sorting scheme 1
-
-This is the simplest sorting scheme and is suited for relatively small datasets. The entire recording is loaded into memory, so if your system has more RAM resources, then it will be capable of handling larger datasets with scheme 1. I think in general, scheme 2 should be used intead since it is potententially more accurate and can handle larger datasets. Nevertheless, scheme 1 can be useful for testing and debugging.
-
-### Sorting scheme 2
-
-The second sorting scheme is generally preferred over scheme 1 because it can handle larger datasets that cannot be fully loaded into memory, and also has other potential advantages in terms of accurately detecting and labeling spikes.
-
-In phase 1, the first scheme is used as a training step, performing unsupervised clustering on a subset of the dataset. Then in phase 2, a classifier is trained based on the labels of the training step. The classifier is then used to label the remaining data.
-
-### Sorting scheme 3
-
-This scheme does not yet exist. We are working to be able to track neurons over the course of a multi-day recording.
 
 ## Citing MountainSort
 

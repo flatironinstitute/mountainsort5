@@ -8,6 +8,8 @@ This is an updated version of the [MountainSort](https://www.sciencedirect.com/s
 * Uses SpikeInterface for I/O and preprocessing
 * Supports multiple sorting schemes, each suited for different experimental setups
 
+![image](https://user-images.githubusercontent.com/3679296/227960322-0723b527-4356-45fb-a045-5ecd6a8269b7.png)
+
 ## Installation
 
 While MountainSort5 is still in development, you can install it from source using pip:

@@ -1,4 +1,4 @@
-from typing import Union, Tuple, List
+from typing import Dict, Tuple, List, Union
 import numpy as np
 import math
 import time
@@ -6,7 +6,7 @@ import spikeinterface as si
 from .Scheme2SortingParameters import Scheme2SortingParameters
 from .Scheme1SortingParameters import Scheme1SortingParameters
 from ..core.detect_spikes import detect_spikes
-from ..core.extract_snippets import extract_snippets
+from ..core.extract_snippets import extract_snippets, extract_snippets_in_channel_neighborhood
 from .sorting_scheme1 import sorting_scheme1
 from ..core.SnippetClassifier import SnippetClassifier
 from ..core.pairwise_merge_step import remove_duplicate_events
@@ -77,7 +77,29 @@ def sorting_scheme2(
 
     print('Training classifier')
     # Train the classifier based on the labels obtained from the first phase sorting
-    snippet_classifer = SnippetClassifier(npca=sorting_parameters.classifier_npca)
+    channel_masks: Dict[int, Union[List[int], None]] = {} # by channel
+    for m in range(M):
+        channel_masks[m] = []
+        for m2 in range(M):
+            if sorting_parameters.snippet_mask_radius is not None:
+                if np.linalg.norm(channel_locations[m] - channel_locations[m2]) <= sorting_parameters.snippet_mask_radius:
+                    channel_masks[m].append(m2)
+            else:
+                channel_masks[m] = None
+    snippet_classifiers: Dict[int, SnippetClassifier] = {} # by channel
+    for m in range(M):
+        snippet_classifiers[m] = SnippetClassifier(npca=sorting_parameters.classifier_npca)
+        # Add random snippets to classifier with label 0 (a noise cluster for classification)
+        uniformly_spread_times = np.floor(np.linspace(sorting_parameters.snippet_T1, training_traces.shape[0] - sorting_parameters.snippet_T2 - 1, sorting_parameters.max_num_snippets_per_training_batch)).astype(np.int32)
+        random_snippets = extract_snippets_in_channel_neighborhood(
+            traces=training_traces,
+            times=uniformly_spread_times,
+            neighborhood=channel_masks[m],
+            T1=sorting_parameters.snippet_T1,
+            T2=sorting_parameters.snippet_T2
+        )
+        snippet_classifiers[m].add_training_snippets(random_snippets, label=0, offset=0)
+
     for k in range(1, K + 1):
         inds0 = np.where(labels == k)[0]
         snippets0 = training_snippets[inds0]
@@ -90,20 +112,29 @@ def sorting_scheme2(
             AA = np.abs(template0)
         peak_indices_over_channels = np.argmax(AA, axis=0)
         peak_values_over_channels = np.max(AA, axis=0)
-        offsets_to_include = []
+        peaks_to_include: List[dict] = []
         for m in range(M):
-            if peak_values_over_channels[m] > sorting_parameters.detect_threshold * 0.5:
-                offsets_to_include.append(peak_indices_over_channels[m] - sorting_parameters.snippet_T1)
-        offsets_to_include = np.unique(offsets_to_include)
-        for offset in offsets_to_include:
-            snippet_classifer.add_training_snippets(
-                snippets=subsample_snippets(np.roll(snippets0, shift=-offset, axis=1), sorting_parameters.max_num_snippets_per_training_batch),
+            if peak_values_over_channels[m] >= sorting_parameters.detect_threshold * 0.4: # should be a parameter
+                peaks_to_include.append({
+                    'channel': m,
+                    'offset': peak_indices_over_channels[m] - sorting_parameters.snippet_T1
+                })
+        for peak in peaks_to_include:
+            m = peak['channel']
+            offset = peak['offset']
+            if channel_masks[m] is not None:
+                snippets0_masked = snippets0[:, :, channel_masks[m]]
+            else:
+                snippets0_masked = snippets0
+            snippet_classifiers[m].add_training_snippets(
+                snippets=subsample_snippets(np.roll(snippets0_masked, shift=-offset, axis=1), sorting_parameters.max_num_snippets_per_training_batch),
                 label=k,
                 offset=offset
             )
     training_snippets = None # Free up memory
-    print('Fitting model')
-    snippet_classifer.fit()
+    print('Fitting models')
+    for m in range(M):
+        snippet_classifiers[m].fit()
 
     # Now that we have the classifier, we can do the full sorting
     # Iterate over time chunks, detect and classify all spikes, and collect the results
@@ -130,25 +161,32 @@ def sorting_scheme2(
             verbose=False
         )
 
-        print('Extracting snippets')
-        snippets2 = extract_snippets(
-            traces=traces_chunk,
-            channel_locations=channel_locations,
-            mask_radius=sorting_parameters.snippet_mask_radius,
-            times=times_chunk,
-            channel_indices=channel_indices_chunk,
-            T1=sorting_parameters.snippet_T1,
-            T2=sorting_parameters.snippet_T2
-        )
+        print('Extracting and classifying snippets')
+        labels_chunk = np.zeros(len(times_chunk), dtype='int32')
+        for m in range(M):
+            inds = np.where(channel_indices_chunk == m)[0]
+            if len(inds) > 0:
+                snippets2 = extract_snippets_in_channel_neighborhood(
+                    traces=traces_chunk,
+                    times=times_chunk[inds],
+                    neighborhood=channel_masks[m],
+                    T1=sorting_parameters.snippet_T1,
+                    T2=sorting_parameters.snippet_T2
+                )
+                labels_chunk_m, offsets_chunk_m = snippet_classifiers[m].classify_snippets(snippets2)
+                if labels_chunk_m is not None:
+                    labels_chunk[inds] = labels_chunk_m
+                    times_chunk[inds] = times_chunk[inds] - offsets_chunk_m
 
-        print('Classifying snippets')
-        labels_chunk, offsets_chunk = snippet_classifer.classify_snippets(snippets2)
-        times_chunk = times_chunk - offsets_chunk
+        # remove events with label 0
+        valid_inds = np.where(labels_chunk > 0)[0]
+        times_chunk = times_chunk[valid_inds]
+        labels_chunk = labels_chunk[valid_inds]
 
         # now that we offset them we need to re-sort
-        sort_inds = np.argsort(times_chunk)
-        times_chunk = times_chunk[sort_inds]
-        labels_chunk = labels_chunk[sort_inds]
+        sort_inds2 = np.argsort(times_chunk)
+        times_chunk = times_chunk[sort_inds2]
+        labels_chunk = labels_chunk[sort_inds2]
 
         print('Removing duplicates')
         times_chunk, labels_chunk = remove_duplicate_events(times_chunk, labels_chunk, tol=time_radius)

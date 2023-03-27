@@ -47,14 +47,20 @@ recording_preprocessed: si.BaseRecording = spre.whiten(recording_filtered)
 
 # use scheme 1
 sorting = ms5.sorting_scheme1(
-    recording=recording,
+    recording=recording_preprocessed,
     sorting_parameters=ms5.Scheme1SortingParameters(...)
 )
 
 # or use scheme 2
 sorting = ms5.sorting_scheme2(
-    recording=recording,
+    recording=recording_preprocessed,
     sorting_parameters=ms5.Scheme2SortingParameters(...)
+)
+
+# or use scheme 3
+sorting = ms5.sorting_scheme3(
+    recording=recording_preprocessed,
+    sorting_parameters=ms5.Scheme3SortingParameters(...)
 )
 
 # Now you have a sorting object that you can save to disk or use for further analysis
@@ -65,6 +71,8 @@ To give it a try with simulated data, run the following scripts in the examples 
 Scheme 1: [examples/scheme1/toy_example.py](./examples/scheme1/toy_example.py)
 
 Scheme 2: [examples/scheme2/toy_example.py](./examples/scheme2/toy_example.py)
+
+Scheme 3: [examples/scheme3/toy_example.py](./examples/scheme3/toy_example.py)
 
 ## Preprocessing
 

@@ -9,6 +9,7 @@ setup(
     ],
     tests_require=[
         "pytest",
-        "pytest-cov"
+        "pytest-cov",
+        "h5py" # needed by spikeinterface.extractors
     ]
 )

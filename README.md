@@ -94,9 +94,13 @@ The second sorting scheme is generally preferred over scheme 1 because it can ha
 
 In phase 1, the first scheme is used as a training step, performing unsupervised clustering on a subset of the dataset. Then in phase 2, a set of classifiers are trained based on the labels of the training step. The classifiers are then used to label the remaining data.
 
+[Read more about scheme 2](./docs/scheme2.md)
+
 ### Sorting scheme 3
 
 Sorting scheme 3 is designed to handle long recordings that may involve waveform drift. The recording is divided into blocks, and each is spike sorted using scheme 2. Then the snippet classifiers are used to associate matching units between blocks.
+
+[Read more about scheme 3](./docs/scheme3.md)
 
 ## Citing MountainSort
 
@@ -129,9 +133,27 @@ In addition, if you use the SpikeInterface framework, please cite the following 
 }
 ```
 
-## Author
+## Contributing
+
+Feel free to open an issue or pull request if you have any questions or suggestions.
+
+Please star this repository if you find it useful!
+
+## Authors
 
 Jeremy Magland, Center for Computational Mathematics, Flatiron Institute
+
+## Acknowledgements
+
+Thank you to Loren Frank and his lab for their support of this project at all stages of development.
+
+Thank you to Alex Barnett and Leslie Greengard for their work on the original Isosplit and MountainSort algorithms.
+
+Thank you to the [SpikeInterface team](https://spikeinterface.readthedocs.io/en/latest/authors.html), especially Alessio Buccino and Samuel Garcia, for their work on the SpikeInterface framework, which supports pre- and post-processing and makes it easy to use MountainSort5 with a variety of file formats.
+
+Thank you to Jeff Soules for his work on sortingview and related visualization tools that make it easy to inspect the results of MountainSort5.
+
+Finally, thank you to all the users of the previous version of MountainSort who have provided feedback and suggestions.
 
 ## License
 

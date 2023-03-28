@@ -10,8 +10,8 @@ jobs:
     - uses: actions/checkout@v1
     - name: Install
       run: pip install .
-    - name: Install h5py
-      run: pip install h5py
+    - name: Install packages needed by spikeinterface
+      run: pip install h5py pandas
     - name: Install packages needed for tests
       run: pip install pytest pytest-cov
     - name: Run tests and collect coverage

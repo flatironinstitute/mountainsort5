@@ -3,6 +3,7 @@ on:
   push:
     tags:
       - '*'
+  workflow_dispatch:
 jobs:
   pypi:
     runs-on: ubuntu-latest

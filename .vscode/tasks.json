@@ -14,15 +14,6 @@
             "detail": "Run code generation"
         },
         {
-            "label": "Publish PyPI",
-            "type": "shell",
-            "command": "bash -ic .vscode/tasks/publish-pypi.sh",
-            "presentation": {
-                "clear": true
-            },
-            "detail": "Publish package to PyPI"
-        },
-        {
             "label": "Test",
             "type": "shell",
             "command": "bash -ic .vscode/tasks/test.sh",

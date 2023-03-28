@@ -2,7 +2,7 @@ projectName: mountainsort5
 pythonProjectVersion: 0.1.1
 projectAuthor: Jeremy Magland
 projectAuthorEmail: jmagland@flatironinstitute.org
-projectDescription:
+projectDescription: MountainSort 5 spike sorting algorithm
 projectUrl: https://github.com/magland/mountainsort5
 projectBugTrackerUrl: https://github.com/magland/mountainsort5/issues
 pythonPackageDir: .

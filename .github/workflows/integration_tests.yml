@@ -1,4 +1,4 @@
-name: Tests with cov
+name: Integration tests with coverage
 
 on: [push, pull_request]
 

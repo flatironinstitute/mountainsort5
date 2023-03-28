@@ -86,27 +86,17 @@ MountainSort5 is organized into multiple *sorting schemes*. Different experiment
 
 This is the simplest sorting scheme and is useful for quick tests. The entire recording is loaded into memory, and clustering is performed in a single pass. In general, scheme 2 should be used intead since it has better handling of events that overlap in time, and works with larger datasets on limited RAM systems. Nevertheless, scheme 1 can be useful for testing and debugging, and is used as the first pass in scheme 2.
 
+[Read more about scheme 1](./docs/scheme1.md)
+
 ### Sorting scheme 2
 
-The second sorting scheme is generally preferred over scheme 1 because it can handle larger datasets that cannot be fully loaded into memory, and also has other potential advantages in terms of accurately detecting and labeling spikes.
+The second sorting scheme is generally preferred over scheme 1 because it can handle larger datasets that cannot be fully loaded into memory, and also has other advantages in terms of accurately detecting and labeling spikes.
 
 In phase 1, the first scheme is used as a training step, performing unsupervised clustering on a subset of the dataset. Then in phase 2, a set of classifiers are trained based on the labels of the training step. The classifiers are then used to label the remaining data.
 
 ### Sorting scheme 3
 
-Sorting scheme 3 is designed to handle long recordings that may involve waveform drift. The recording is divided into blocks, and each being is spike sorted using scheme 2. Then the snippet classifiers are used to associate matching units between blocks.
-
-## General parameters
-
-Unlike most clustering methods, the Isosplit algorithm by design does not have any adjustable parameters. Below are some spike sorting parameters that may affect the accuracy of spike sorting, depending on the type of dataset.
-
-**Detection threshold (detect_threshold)**
-
-One of the trickiest parameters to set is the detection threshold (detect_threshold). If it is set too low, then you will end up with many false merges because the clusters will overlap for spikes with lower amplitudes. This is especially the case for bursting cells that exhibit a range of spike amplitudes. Of course, if it is set too high, then you'll miss some low-amplitude events. I would recommend leaving this at the default value (5.5 for whitened data) since this seems to perform well on a variety of examples I have tried. You may think that 5.5 sounds high, but I will emphasize that the detection is performed on the ZCA-whitened data for which the spikes peaks tend to be better separated from noise compared with the pre-whitened bandpass-filtered data.
-
-**Number of PCA features per branch (npca_per_branch)**
-
-MountainSort utilizes a branching method for clustering. After extracting spike snippets from the preprocessed traces, the data undergoes dimension reduction through PCA before clustering. Initially, `npca_per_branch` PCA features are computed, followed by Isosplit clustering. If more than one cluster is detected, each of them becomes a new branch, and feature extraction is performed again within each branch separately, followed by Isosplit clustering to subdivide the clusters further. This process is repeated until each leaf branch returns a single cluster. At each stage, the same number of PCA components (npca_per_branch) is used. Recomputing features on each branch offers an advantage, as it allows the refined components to capture features that can better differentiate between clusters within the same overall feature space region.
+Sorting scheme 3 is designed to handle long recordings that may involve waveform drift. The recording is divided into blocks, and each is spike sorted using scheme 2. Then the snippet classifiers are used to associate matching units between blocks.
 
 ## Citing MountainSort
 

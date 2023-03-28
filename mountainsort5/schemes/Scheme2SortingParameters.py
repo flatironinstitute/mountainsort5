@@ -39,7 +39,7 @@ class Scheme2SortingParameters:
     snippet_T2: int=20
     snippet_mask_radius: Union[float, None]=None
     max_num_snippets_per_training_batch: int=200
-    classifier_npca: int=60
+    classifier_npca: Union[int, None]=60
     training_duration_sec: Union[float, None]=None
     training_recording_sampling_mode: Literal['initial', 'uniform']='initial'
 

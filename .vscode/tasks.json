@@ -5,15 +5,6 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Code generation",
-            "type": "shell",
-            "command": "bash -ic .vscode/tasks/code-generation.sh",
-            "presentation": {
-                "clear": true
-            },
-            "detail": "Run code generation"
-        },
-        {
             "label": "Test",
             "type": "shell",
             "command": "bash -ic .vscode/tasks/test.sh",

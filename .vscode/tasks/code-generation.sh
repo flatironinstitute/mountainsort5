@@ -1,3 +1,0 @@
-set -ex
-
-jinjaroot generate

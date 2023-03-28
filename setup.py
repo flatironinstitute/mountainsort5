@@ -15,6 +15,7 @@ setup(
     url="https://github.com/magland/mountainsort5",
     description="MountainSort 5 spike sorting algorithm",
     long_description=long_description,
+    long_description_content_type='text/markdown',
     packages=find_packages(),
     install_requires=[
         'spikeinterface>=0.97.1',

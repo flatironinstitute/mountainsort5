@@ -16,9 +16,9 @@ def pairwise_merge_step(*, snippets: np.ndarray, templates: np.ndarray, labels: 
     if detect_sign < 0:
         A = -templates
     elif detect_sign > 0:
-        A = templates
+        A = templates # pragma: no cove
     else:
-        A = np.abs(templates)
+        A = np.abs(templates) # pragma: no cove
     
     merges = {}
     peak_channel_indices = [np.argmax(np.max(A[i], axis=0)) for i in range(K)]

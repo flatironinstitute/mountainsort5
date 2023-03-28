@@ -21,6 +21,15 @@
                 "clear": true
             },
             "detail": "Publish package to PyPI"
+        },
+        {
+            "label": "Test",
+            "type": "shell",
+            "command": "bash -ic .vscode/tasks/test.sh",
+            "presentation": {
+                "clear": true
+            },
+            "detail": "Run tests"
         }
     ]
 }

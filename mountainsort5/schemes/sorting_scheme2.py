@@ -328,9 +328,12 @@ def get_times_labels_from_sorting(sorting: si.BaseSorting) -> Tuple[np.ndarray, 
         labels0 = np.ones(times0.shape, dtype=np.int32) * unit_id
         times_list.append(times0)
         labels_list.append(labels0)
-    times = np.concatenate(times_list)
-    labels = np.concatenate(labels_list)
-    inds = np.argsort(times)
-    times = times[inds]
-    labels = labels[inds]
-    return times, labels
+    if len(times_list) > 0:
+        times = np.concatenate(times_list)
+        labels = np.concatenate(labels_list)
+        inds = np.argsort(times)
+        times = times[inds]
+        labels = labels[inds]
+        return times, labels
+    else:
+        return np.array([], dtype=np.int32), np.array([], dtype=np.int32)

@@ -14,8 +14,7 @@ class SnippetClassifier:
         self.training_batches.append(TrainingBatch(snippets=snippets, label=label, offset=offset))
     def fit(self):
         if len(self.training_batches) == 0:
-            print('WARNING: no training batches added for classifier.')
-            return
+            raise Exception('No training batches added for classifier.')
         all_training_snippets = np.concatenate([b.snippets for b in self.training_batches], axis=0)
         L = all_training_snippets.shape[0]
         self.T = all_training_snippets.shape[1]

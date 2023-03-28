@@ -28,17 +28,17 @@ def sorting_scheme3(
 
     sorting_parameters.check_valid(M=M, N=N, sampling_frequency=sampling_frequency, channel_locations=channel_locations)
 
-    chunk_size = int(sorting_parameters.block_duration_sec * sampling_frequency) # size of chunks in samples
-    chunks = get_time_chunks(recording.get_num_samples(), chunk_size=chunk_size, padding=1000)
+    block_size = int(sorting_parameters.block_duration_sec * sampling_frequency) # size of chunks in samples
+    blocks = get_time_chunks(recording.get_num_samples(), chunk_size=block_size, padding=1000)
 
     times_list: list[np.ndarray] = []
     labels_list: list[np.ndarray] = []
     last_label_used = 0
     previous_snippet_classifiers: Union[Dict[int, SnippetClassifier], None] = None
-    for i, chunk in enumerate(chunks):
+    for i, chunk in enumerate(blocks):
         print('')
         print('=============================================')
-        print(f'Processing block {i + 1} of {len(chunks)}...')
+        print(f'Processing block {i + 1} of {len(blocks)}...')
         subrecording = get_block_recording_for_scheme3(recording=recording, start_frame=chunk.start - chunk.padding_left, end_frame=chunk.end + chunk.padding_right)
         subsorting, snippet_classifiers = sorting_scheme2(
             subrecording,

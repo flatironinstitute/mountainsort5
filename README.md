@@ -1,10 +1,13 @@
 # MountainSort 5
 
-[![tests](https://github.com/magland/mountainsort5/actions/workflows/integration_tests.yml/badge.svg)] [![codecov](https://codecov.io/gh/magland/mountainsort5/branch/main/graph/badge.svg?token=RTENQMNXKQ)](https://codecov.io/gh/magland/mountainsort5)
+![tests](https://github.com/magland/mountainsort5/actions/workflows/integration_tests.yml/badge.svg) [![codecov](https://codecov.io/gh/magland/mountainsort5/branch/main/graph/badge.svg?token=RTENQMNXKQ)](https://codecov.io/gh/magland/mountainsort5)
 
-This is an updated version of the [MountainSort](https://www.sciencedirect.com/science/article/pii/S0896627317307456) spike sorting algorithm. An implementation of the previous version of this algorithm can be [found here](https://github.com/magland/mountainsort4).
+This is the most recent version of the [MountainSort](https://www.sciencedirect.com/science/article/pii/S0896627317307456) spike sorting algorithm. An implementation of the previous version of this algorithm can be [found here](https://github.com/magland/mountainsort4).
 
 * Uses [Isosplit clustering](https://github.com/magland/isosplit6)
+* Runs much faster than previous versions
+* Works well on large datasets
+* Better handles time-overlapping events and drifting waveforms
 * Designed to be easy to use and to work well out of the box
 * Runs fast on a CPU
 * Uses SpikeInterface for I/O and preprocessing
@@ -14,7 +17,7 @@ This is an updated version of the [MountainSort](https://www.sciencedirect.com/s
 
 ## Installation
 
-While MountainSort5 is still in development, you can install it from source using pip:
+While MountainSort5 is still in development, you should install it from source using pip:
 
 ```bash
 git clone https://github.com/magland/mountainsort5

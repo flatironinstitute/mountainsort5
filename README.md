@@ -1,5 +1,7 @@
 # MountainSort 5
 
+[![codecov](https://codecov.io/gh/magland/mountainsort5/branch/main/graph/badge.svg?token=RTENQMNXKQ)](https://codecov.io/gh/magland/mountainsort5)
+
 This is an updated version of the [MountainSort](https://www.sciencedirect.com/science/article/pii/S0896627317307456) spike sorting algorithm. An implementation of the previous version of this algorithm can be [found here](https://github.com/magland/mountainsort4).
 
 * Uses [Isosplit clustering](https://github.com/magland/isosplit6)

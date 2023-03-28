@@ -145,7 +145,7 @@ Jeremy Magland, Center for Computational Mathematics, Flatiron Institute
 
 ## Acknowledgements
 
-Thank you to Loren Frank and his lab for their support of this project at all stages of development.
+Thank you to Loren Frank and members of his lab for their support of this project at all stages of development.
 
 Thank you to Alex Barnett and Leslie Greengard for their work on the original Isosplit and MountainSort algorithms.
 

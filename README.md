@@ -2,7 +2,7 @@
 
 This is an updated version of the [MountainSort](https://www.sciencedirect.com/science/article/pii/S0896627317307456) spike sorting algorithm. An implementation of the previous version of this algorithm can be [found here](https://github.com/magland/mountainsort4).
 
-* Uses [Isosplit clustering](https://github.com/magland/isosplit6) ([preprint](https://arxiv.org/abs/1508.04841))
+* Uses [Isosplit clustering](https://github.com/magland/isosplit6)
 * Designed to be easy to use and to work well out of the box
 * Runs fast on a CPU
 * Uses SpikeInterface for I/O and preprocessing
@@ -47,14 +47,20 @@ recording_preprocessed: si.BaseRecording = spre.whiten(recording_filtered)
 
 # use scheme 1
 sorting = ms5.sorting_scheme1(
-    recording=recording,
+    recording=recording_preprocessed,
     sorting_parameters=ms5.Scheme1SortingParameters(...)
 )
 
 # or use scheme 2
 sorting = ms5.sorting_scheme2(
-    recording=recording,
+    recording=recording_preprocessed,
     sorting_parameters=ms5.Scheme2SortingParameters(...)
+)
+
+# or use scheme 3
+sorting = ms5.sorting_scheme3(
+    recording=recording_preprocessed,
+    sorting_parameters=ms5.Scheme3SortingParameters(...)
 )
 
 # Now you have a sorting object that you can save to disk or use for further analysis
@@ -65,6 +71,8 @@ To give it a try with simulated data, run the following scripts in the examples 
 Scheme 1: [examples/scheme1/toy_example.py](./examples/scheme1/toy_example.py)
 
 Scheme 2: [examples/scheme2/toy_example.py](./examples/scheme2/toy_example.py)
+
+Scheme 3: [examples/scheme3/toy_example.py](./examples/scheme3/toy_example.py)
 
 ## Preprocessing
 
@@ -98,7 +106,7 @@ One of the trickiest parameters to set is the detection threshold (detect_thresh
 
 **Number of PCA features per branch (npca_per_branch)**
 
-MountainSort uses a branch method for clustering. After spike snippets are extracted from the preprocessed traces, dimension reduction via PCA is used prior to clustering. In the first step, npca_per_branch PCA features are computed, and then Isosplit clustering is performed. After this, assuming more than one cluster is found, each cluster becomes a new branch, and feature extraction from the original snippets is performed again within each branch separately, and Isosplit is used to subdivide the clusters further. This procedure is repeated until clustering returns a single cluster for each branch. The same number of PCA components (npca_per_branch) is used at each stage. The advantage of recomputing features on each branch is that the refined components can capture features that can more effectively distinguish between clusters within the same general region of overall feature space.
+MountainSort utilizes a branching method for clustering. After extracting spike snippets from the preprocessed traces, the data undergoes dimension reduction through PCA before clustering. Initially, `npca_per_branch` PCA features are computed, followed by Isosplit clustering. If more than one cluster is detected, each of them becomes a new branch, and feature extraction is performed again within each branch separately, followed by Isosplit clustering to subdivide the clusters further. This process is repeated until each leaf branch returns a single cluster. At each stage, the same number of PCA components (npca_per_branch) is used. Recomputing features on each branch offers an advantage, as it allows the refined components to capture features that can better differentiate between clusters within the same overall feature space region.
 
 ## Citing MountainSort
 

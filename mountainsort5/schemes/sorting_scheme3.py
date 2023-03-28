@@ -6,6 +6,7 @@ from .sorting_scheme2 import get_time_chunks
 from .sorting_scheme2 import sorting_scheme2, get_times_labels_from_sorting
 from ..core.get_block_recording_for_scheme3 import get_block_recording_for_scheme3
 from ..core.SnippetClassifier import SnippetClassifier
+from ..core.get_times_labels_from_sorting import get_times_labels_from_sorting
 
 
 def sorting_scheme3(

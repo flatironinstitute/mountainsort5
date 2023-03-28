@@ -1,6 +1,8 @@
 # MountainSort 5
 
-![tests](https://github.com/magland/mountainsort5/actions/workflows/integration_tests.yml/badge.svg) [![codecov](https://codecov.io/gh/magland/mountainsort5/branch/main/graph/badge.svg?token=RTENQMNXKQ)](https://codecov.io/gh/magland/mountainsort5)
+[![latest-release](https://img.shields.io/pypi/v/mountainsort5.svg)](https://pypi.org/project/mountainsort5)
+![tests](https://github.com/magland/mountainsort5/actions/workflows/integration_tests.yml/badge.svg)
+[![codecov](https://codecov.io/gh/magland/mountainsort5/branch/main/graph/badge.svg?token=RTENQMNXKQ)](https://codecov.io/gh/magland/mountainsort5)
 
 This is the most recent version of the [MountainSort](https://www.sciencedirect.com/science/article/pii/S0896627317307456) spike sorting algorithm. An implementation of the previous version of this algorithm can be [found here](https://github.com/magland/mountainsort4).
 
@@ -17,15 +19,8 @@ This is the most recent version of the [MountainSort](https://www.sciencedirect.
 
 ## Installation
 
-While MountainSort5 is still in development, you should install it from source using pip:
-
 ```bash
-git clone https://github.com/magland/mountainsort5
-cd mountainsort5
-pip install -e .
-
-# update periodically
-git pull
+pip install --upgrade mountainsort5
 ```
 
 **Dependencies**:
@@ -34,7 +29,7 @@ Python, SpikeInterface, scikit-learn, isosplit6
 
 ## Usage
 
-MountainSort5 is a Python package that utilizes [SpikeInterface](https://github.com/spikeinterface/spikeinterface) recording and sorting objects. You can get started by reading the [SpikeInterface documentation](https://spikeinterface.readthedocs.io/en/latest/).
+MountainSort5 utilizes [SpikeInterface](https://github.com/spikeinterface/spikeinterface) recording and sorting objects. You can get started by reading the [SpikeInterface documentation](https://spikeinterface.readthedocs.io/en/latest/).
 
 Once you have a recording object, you can run MountainSort5 using the following code:
 

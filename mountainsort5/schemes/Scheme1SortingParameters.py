@@ -26,10 +26,8 @@ class Scheme1SortingParameters:
     npca_per_branch: int=12
     pairwise_merge_step: bool=True
 
-    def check_valid(self, *, M: int, N: int, sampling_frequency: float, channel_locations: Union[np.ndarray, None]=None):
+    def check_valid(self, *, M: int, N: int, sampling_frequency: float, channel_locations: np.ndarray):
         """Internal function for checking validity of parameters"""
-        if channel_locations is None:
-            channel_locations = np.zeros((M, 1), dtype=np.float32)
         assert channel_locations.shape[0] == M, 'Shape mismatch between traces and channel locations'
         D = channel_locations.shape[1]
         assert N >= self.snippet_T1 + self.snippet_T2

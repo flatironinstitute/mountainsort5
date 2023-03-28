@@ -28,17 +28,21 @@ def get_sampled_recording_for_training(
         chunk_size = int(recording.sampling_frequency * min(10, training_duration_sec))
         # the number of chunks depends on the training duration
         num_chunks = int(np.ceil(training_duration_sec * recording.sampling_frequency / chunk_size))
+        chunk_sizes = [chunk_size for i in range(num_chunks)]
+        chunk_sizes[-1] = int(training_duration_sec * recording.sampling_frequency - (num_chunks - 1) * chunk_size)
         if num_chunks == 1:
             # if only 1 chunk, then just use the initial chunk
             traces = recording.get_traces(start_frame=0, end_frame=int(training_duration_sec * recording.sampling_frequency))
         else:
             # the spacing between the chunks
-            spacing = (recording.get_num_frames() - chunk_size * num_chunks) / (num_chunks - 1)
+            spacing = int((recording.get_num_frames() - np.sum(chunk_sizes)) / (num_chunks - 1))
             traces_list: list[np.ndarray] = []
+            tt = 0
             for i in range(num_chunks):
-                start_frame = int(i * (chunk_size + spacing))
-                end_frame = int(start_frame + chunk_size)
+                start_frame = tt
+                end_frame = int(start_frame + chunk_sizes[i])
                 traces_list.append(recording.get_traces(start_frame=start_frame, end_frame=end_frame))
+                tt += int(chunk_sizes[i] + spacing)
             traces = np.concatenate(traces_list, axis=0)
     else:
         raise Exception('Invalid mode: ' + mode) # pragma: no cover

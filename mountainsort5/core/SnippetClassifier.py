@@ -14,7 +14,7 @@ class SnippetClassifier:
         self.training_batches.append(TrainingBatch(snippets=snippets, label=label, offset=offset))
     def fit(self):
         if len(self.training_batches) == 0:
-            raise Exception('No training batches added for classifier.')
+            raise Exception('No training batches added for classifier.') # pragma: no cover
         all_training_snippets = np.concatenate([b.snippets for b in self.training_batches], axis=0)
         L = all_training_snippets.shape[0]
         self.T = all_training_snippets.shape[1]
@@ -28,7 +28,7 @@ class SnippetClassifier:
         self.nearest_neighbor_model.fit(X)
     def classify_snippets(self, snippets: np.ndarray) -> Tuple[Union[np.array, None], Union[np.array, None]]:
         if self.pca_model is None:
-            return None, None
+            raise Exception('self.pca_model is None, which probably means that fit() was not called.') # pragma: no cover
         Y = self.pca_model.transform(snippets.reshape(snippets.shape[0], self.T * self.M))
         nearest_inds = self.nearest_neighbor_model.kneighbors(Y, n_neighbors=2, return_distance=False)
         inds = nearest_inds[:, 1] # don't use the first because that could be an identical match

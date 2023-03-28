@@ -1,4 +1,5 @@
 import spikeinterface as si
+import numpy as np
 from typing import Literal
 
 
@@ -17,12 +18,30 @@ def get_sampled_recording_for_training(
     Returns:
         si.BaseRecording: SpikeInterface recording object
     """
+    if training_duration_sec * recording.sampling_frequency >= recording.get_num_frames():
+        # if the training duration is longer than the recording, then just use the entire recording
+        return recording
     if mode == 'initial':
         traces = recording.get_traces(start_frame=0, end_frame=int(training_duration_sec * recording.sampling_frequency))
     elif mode == 'uniform':
-        raise Exception('Not implemented yet')
+        # use chunks of 10 seconds
+        chunk_size = int(recording.sampling_frequency * min(10, training_duration_sec))
+        # the number of chunks depends on the training duration
+        num_chunks = int(np.ceil(training_duration_sec * recording.sampling_frequency / chunk_size))
+        if num_chunks == 1:
+            # if only 1 chunk, then just use the initial chunk
+            traces = recording.get_traces(start_frame=0, end_frame=int(training_duration_sec * recording.sampling_frequency))
+        else:
+            # the spacing between the chunks
+            spacing = (recording.get_num_frames() - chunk_size * num_chunks) / (num_chunks - 1)
+            traces_list: list[np.ndarray] = []
+            for i in range(num_chunks):
+                start_frame = int(i * (chunk_size + spacing))
+                end_frame = int(start_frame + chunk_size)
+                traces_list.append(recording.get_traces(start_frame=start_frame, end_frame=end_frame))
+            traces = np.concatenate(traces_list, axis=0)
     else:
-        raise Exception('Invalid mode: ' + mode)
+        raise Exception('Invalid mode: ' + mode) # pragma: no cover
     
     rec = si.NumpyRecording(
         traces_list=[traces],

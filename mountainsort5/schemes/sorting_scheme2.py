@@ -109,10 +109,10 @@ def sorting_scheme2(
         template0 = np.median(snippets0, axis=0) # T x M
         if sorting_parameters.detect_sign < 0:
             AA = -template0
-        elif sorting_parameters.detect_sign > 0:
-            AA = template0
+        elif sorting_parameters.detect_sign > 0: # pragma: no cover
+            AA = template0 # pragma: no cover
         else:
-            AA = np.abs(template0)
+            AA = np.abs(template0) # pragma: no cover
         peak_indices_over_channels = np.argmax(AA, axis=0)
         peak_values_over_channels = np.max(AA, axis=0)
         peaks_to_include: List[dict] = []

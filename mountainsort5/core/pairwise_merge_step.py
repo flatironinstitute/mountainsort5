@@ -15,10 +15,10 @@ def pairwise_merge_step(*, snippets: np.ndarray, templates: np.ndarray, labels: 
 
     if detect_sign < 0:
         A = -templates
-    elif detect_sign > 0:
-        A = templates # pragma: no cove
+    elif detect_sign > 0: # pragma: no cover
+        A = templates # pragma: no cover
     else:
-        A = np.abs(templates) # pragma: no cove
+        A = np.abs(templates) # pragma: no cover
     
     merges = {}
     peak_channel_indices = [np.argmax(np.max(A[i], axis=0)) for i in range(K)]

@@ -1,4 +1,4 @@
-name: Integration tests with coverage
+name: integration tests
 
 on: [push, pull_request]
 

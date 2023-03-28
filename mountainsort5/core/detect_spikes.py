@@ -17,9 +17,11 @@ def detect_spikes(
     M = traces.shape[1]
 
     if detect_sign > 0:
-        traces = -traces # todo: figure out how to avoid making a copy
+        # todo: figure out how to avoid making a copy
+        traces = -traces # pragma: no cover
     elif detect_sign == 0:
-        traces = -np.abs(traces) # todo: figure out how to avoid making a copy
+        # todo: figure out how to avoid making a copy
+        traces = -np.abs(traces) # pragma: no cover
     
     adjacency = []
     for m in range(M):

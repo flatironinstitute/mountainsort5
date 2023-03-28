@@ -11,7 +11,7 @@ jobs:
     - name: Install
       run: pip install .
     - name: Install packages needed by spikeinterface
-      run: pip install h5py pandas
+      run: pip install h5py pandas networkx
     - name: Install packages needed for tests
       run: pip install pytest pytest-cov
     - name: Run tests and collect coverage

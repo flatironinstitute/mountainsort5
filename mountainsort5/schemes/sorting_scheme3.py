@@ -1,5 +1,6 @@
 from typing import Dict, Union
 import numpy as np
+import numpy.typing as npt
 import spikeinterface as si
 from .Scheme3SortingParameters import Scheme3SortingParameters
 from .sorting_scheme2 import get_time_chunks
@@ -22,6 +23,15 @@ def sorting_scheme3(
     Returns:
         si.BaseSorting: SpikeInterface sorting object
     """
+
+    if recording.get_num_segments() > 1:
+        print('Recording has multiple segments. Joining segments for sorting...')
+        recording_joined = si.concatenate_recordings(recording_list=[recording])
+        sorting_joined = sorting_scheme3(recording_joined, sorting_parameters=sorting_parameters)
+        print('Splitting sorting into segments to match original multisegment recording...')
+        sorting = si.split_sorting(sorting_joined, recording_joined)
+        return sorting
+
     M = recording.get_num_channels()
     N = recording.get_num_frames()
     sampling_frequency = recording.sampling_frequency
@@ -32,8 +42,8 @@ def sorting_scheme3(
     block_size = int(sorting_parameters.block_duration_sec * sampling_frequency) # size of chunks in samples
     blocks = get_time_chunks(recording.get_num_samples(), chunk_size=block_size, padding=1000)
 
-    times_list: list[np.ndarray] = []
-    labels_list: list[np.ndarray] = []
+    times_list: list[npt.NDArray[np.int64]] = []
+    labels_list: list[npt.NDArray[np.int32]] = []
     last_label_used = 0
     previous_snippet_classifiers: Union[Dict[int, SnippetClassifier], None] = None
     for i, chunk in enumerate(blocks):
@@ -50,10 +60,10 @@ def sorting_scheme3(
         )
         previous_snippet_classifiers = snippet_classifiers
         times0, labels0 = get_times_labels_from_sorting(subsorting)
-        valid_inds = np.where((times0 >= chunk.padding_left) & (times0 < chunk.padding_left + chunk.end - chunk.start))[0]
-        times0 = times0[valid_inds]
-        labels0 = labels0[valid_inds]
-        times0 = times0 + chunk.start - chunk.padding_left
+        valid_inds = np.where((times0 >= chunk.padding_left) & (times0 < chunk.padding_left + (chunk.end - chunk.start)))[0]
+        times0: npt.NDArray[np.int32] = times0[valid_inds]
+        labels0: npt.NDArray[np.int32] = labels0[valid_inds]
+        times0 = times0.astype(np.int64) + chunk.start - np.int64(chunk.padding_left)
         if len(labels0) > 0:
             last_label_used = max(last_label_used, np.max(labels0))
         times_list.append(times0)

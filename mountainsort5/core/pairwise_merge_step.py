@@ -1,10 +1,11 @@
-from typing import List
+from typing import List, Tuple
 import numpy as np
+import numpy.typing as npt
 from .compute_pca_features import compute_pca_features
 from isosplit6 import isosplit6
 
 
-def pairwise_merge_step(*, snippets: np.ndarray, templates: np.ndarray, labels: np.array, times: np.array, detect_sign: int, unit_ids: np.array, detect_time_radius: int) -> np.array:
+def pairwise_merge_step(*, snippets: npt.NDArray[np.float32], templates: npt.NDArray[np.float32], labels: npt.NDArray[np.int32], times: npt.NDArray[np.int32], detect_sign: int, unit_ids: np.array, detect_time_radius: int) -> Tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
     # L = snippets.shape[0]
     # T = snippets.shape[1]
     # M = snippets.shape[2]
@@ -65,7 +66,7 @@ def pairwise_merge_step(*, snippets: np.ndarray, templates: np.ndarray, labels: 
 
     return new_times, new_labels
 
-def remove_duplicate_events(times: np.array, labels: np.array, *, tol: int):
+def remove_duplicate_events(times: npt.NDArray[np.int32], labels: npt.NDArray[np.int32], *, tol: int) -> npt.NDArray[np.int32]:
     new_labels = np.array(labels)
     unit_ids = np.unique(new_labels)
     for unit_id in unit_ids:
@@ -76,8 +77,8 @@ def remove_duplicate_events(times: np.array, labels: np.array, *, tol: int):
     inds_nonzero = np.nonzero(new_labels)[0]
     return inds_nonzero
 
-def find_duplicate_times(times: np.array, *, tol: int):
-    ret = []
+def find_duplicate_times(times: npt.NDArray[np.int32], *, tol: int) -> npt.NDArray[np.int32]:
+    ret: list[np.int32] = []
     deleted = np.zeros((len(times),), dtype=np.int16)
     for i1 in range(len(times)):
         if not deleted[i1]:
@@ -86,9 +87,9 @@ def find_duplicate_times(times: np.array, *, tol: int):
                 ret.append(i2)
                 deleted[i2] = True
                 i2 += 1
-    return ret
+    return np.array(ret, dtype=np.int32)
 
-def test_merge(snippets1: np.ndarray, snippets2: np.ndarray):
+def test_merge(snippets1: npt.NDArray[np.float32], snippets2: npt.NDArray[np.float32]) -> bool:
     L1 = snippets1.shape[0]
     L2 = snippets2.shape[0]
     T = snippets1.shape[1]
@@ -105,5 +106,5 @@ def test_merge(snippets1: np.ndarray, snippets2: np.ndarray):
     # dominant_label2 = np.argmax(np.bincount(labels0[L1:]))
     # return dominant_label1 == dominant_label2
 
-def offset_snippets(snippets: np.ndarray, *, offset: int):
+def offset_snippets(snippets: npt.NDArray[np.float32], *, offset: int):
     return np.roll(snippets, shift=offset, axis=1)

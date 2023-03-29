@@ -1,5 +1,6 @@
 from typing import List, Tuple, Union, Dict
 import numpy as np
+import numpy.typing as npt
 from dataclasses import dataclass
 from sklearn import decomposition
 from sklearn.neighbors import NearestNeighbors
@@ -10,7 +11,7 @@ class SnippetClassifier:
         self.npca = npca
         self.training_batches: List[TrainingBatch] = []
         self.pca_model = None
-    def add_training_snippets(self, snippets: np.ndarray, label: int, offset: int):
+    def add_training_snippets(self, snippets: npt.NDArray[np.float32], label: int, offset: int):
         self.training_batches.append(TrainingBatch(snippets=snippets, label=label, offset=offset))
     def fit(self):
         if len(self.training_batches) == 0:
@@ -26,7 +27,7 @@ class SnippetClassifier:
         X = self.pca_model.transform(all_training_snippets.reshape(L, self.T * self.M))
         self.nearest_neighbor_model = NearestNeighbors(n_neighbors=2)
         self.nearest_neighbor_model.fit(X)
-    def classify_snippets(self, snippets: np.ndarray) -> Tuple[Union[np.array, None], Union[np.array, None]]:
+    def classify_snippets(self, snippets: npt.NDArray[np.float32]) -> Tuple[Union[npt.NDArray[np.int32], None], Union[npt.NDArray[np.int32], None]]:
         if self.pca_model is None:
             raise Exception('self.pca_model is None, which probably means that fit() was not called.') # pragma: no cover
         Y = self.pca_model.transform(snippets.reshape(snippets.shape[0], self.T * self.M))
@@ -39,7 +40,7 @@ class SnippetClassifier:
 
 @dataclass
 class TrainingBatch:
-    snippets: np.ndarray
+    snippets: npt.NDArray[np.float32]
     label: int
     offset: int
     @property

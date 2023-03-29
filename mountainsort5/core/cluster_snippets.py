@@ -1,14 +1,15 @@
 from typing import Union
 import numpy as np
+import numpy.typing as npt
 from isosplit6 import isosplit6
 from .compute_pca_features import compute_pca_features
 
 
 def cluster_snippets(
-    snippets: np.ndarray, *,
+    snippets: npt.NDArray[np.float32], *,
     npca_per_branch: int,
-    snippet_inds: Union[np.array, None]=None # pass in inds so that we don't keep making copies of the array
-) -> np.array:
+    snippet_inds: Union[npt.NDArray[np.int32], None]=None # pass in inds so that we don't keep making copies of the array
+) -> npt.NDArray[np.int32]:
     if snippet_inds is not None:
         snippets_sub = snippets[snippet_inds]
     else:

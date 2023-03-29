@@ -1,7 +1,8 @@
 import numpy as np
+import numpy.typing as npt
 
 
-def compute_templates(snippets: np.ndarray, labels: np.int32):
+def compute_templates(snippets: npt.NDArray[np.float32], labels: np.int32):
     # L = snippets.shape[0]
     T = snippets.shape[1]
     M = snippets.shape[2]

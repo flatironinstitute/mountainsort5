@@ -1,10 +1,11 @@
 from typing import Tuple, Union
 import numpy as np
+import numpy.typing as npt
 
 
 def detect_spikes(
-    traces: np.ndarray, *,
-    channel_locations: np.ndarray,
+    traces: npt.NDArray[np.float32], *,
+    channel_locations: npt.NDArray[np.float32],
     time_radius: int,
     channel_radius: Union[float, None],
     detect_threshold: float,
@@ -12,7 +13,7 @@ def detect_spikes(
     margin_left: int,
     margin_right: int,
     verbose: bool
-) -> Tuple[np.array, np.array]:
+) -> Tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
     N = traces.shape[0]
     M = traces.shape[1]
 

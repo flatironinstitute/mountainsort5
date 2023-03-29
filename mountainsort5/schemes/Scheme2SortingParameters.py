@@ -1,4 +1,5 @@
 import numpy as np
+import numpy.typing as npt
 from typing import Union, Literal
 from dataclasses import dataclass
 
@@ -43,7 +44,7 @@ class Scheme2SortingParameters:
     training_duration_sec: Union[float, None]=None
     training_recording_sampling_mode: Literal['initial', 'uniform']='initial'
 
-    def check_valid(self, *, M: int, N: int, sampling_frequency: float, channel_locations: np.ndarray):
+    def check_valid(self, *, M: int, N: int, sampling_frequency: float, channel_locations: npt.NDArray[np.float32]):
         """Internal function for checking validity of parameters"""
         assert channel_locations.shape[0] == M, 'Shape mismatch between traces and channel locations'
         D = channel_locations.shape[1]

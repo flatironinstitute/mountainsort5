@@ -1,4 +1,5 @@
 import numpy as np
+import numpy.typing as npt
 from typing import Union
 from dataclasses import dataclass
 
@@ -26,7 +27,7 @@ class Scheme1SortingParameters:
     npca_per_branch: int=12
     pairwise_merge_step: bool=True
 
-    def check_valid(self, *, M: int, N: int, sampling_frequency: float, channel_locations: np.ndarray):
+    def check_valid(self, *, M: int, N: int, sampling_frequency: float, channel_locations: npt.NDArray[np.float32]):
         """Internal function for checking validity of parameters"""
         assert channel_locations.shape[0] == M, 'Shape mismatch between traces and channel locations'
         D = channel_locations.shape[1]

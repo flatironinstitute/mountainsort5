@@ -1,5 +1,6 @@
 from typing import Dict, Tuple, List, Union
 import numpy as np
+import numpy.typing as npt
 import math
 import spikeinterface as si
 from .Scheme2SortingParameters import Scheme2SortingParameters
@@ -13,7 +14,6 @@ from ..core.get_sampled_recording_for_training import get_sampled_recording_for_
 from ..core.get_times_labels_from_sorting import get_times_labels_from_sorting
 
 
-# This is an extension of sorting_scheme1
 def sorting_scheme2(
     recording: si.BaseRecording, *,
     sorting_parameters: Scheme2SortingParameters,
@@ -30,6 +30,24 @@ def sorting_scheme2(
     Returns:
         si.BaseSorting: SpikeInterface sorting object
     """
+
+    if recording.get_num_segments() > 1:
+        print('Recording has multiple segments. Joining segments for sorting...')
+        recording_joined = si.concatenate_recordings(recording_list=[recording])
+        sorting_joined, snippet_classifiers = sorting_scheme2(
+            recording_joined,
+            sorting_parameters=sorting_parameters,
+            return_snippet_classifiers=True,
+            reference_snippet_classifiers=reference_snippet_classifiers,
+            label_offset=label_offset
+        )
+        print('Splitting sorting into segments to match original multisegment recording...')
+        sorting = si.split_sorting(sorting_joined, recording_joined)
+        if return_snippet_classifiers:
+            return sorting, snippet_classifiers
+        else:
+            return sorting
+
     M = recording.get_num_channels()
     N = recording.get_num_frames()
     sampling_frequency = recording.sampling_frequency
@@ -145,8 +163,8 @@ def sorting_scheme2(
     chunk_size = int(math.ceil(100e6 / recording.get_num_channels())) # size of chunks in samples
     print(f'Chunk size: {chunk_size / recording.sampling_frequency} sec')
     chunks = get_time_chunks(recording.get_num_samples(), chunk_size=chunk_size, padding=1000)
-    times_list = []
-    labels_list = []
+    times_list: list[npt.NDArray[np.int64]] = []
+    labels_list: list[npt.NDArray[np.int32]] = []
     labels_reference_list = [] if reference_snippet_classifiers is not None else None
     for i, chunk in enumerate(chunks):
         print(f'Time chunk {i + 1} of {len(chunks)}')
@@ -190,37 +208,39 @@ def sorting_scheme2(
 
         # remove events with label 0
         valid_inds = np.where(labels_chunk > 0)[0]
-        times_chunk = times_chunk[valid_inds]
-        labels_chunk = labels_chunk[valid_inds]
+        times_chunk: npt.NDArray[np.int32] = times_chunk[valid_inds]
+        labels_chunk: npt.NDArray[np.int32] = labels_chunk[valid_inds]
         labels_reference_chunk = labels_reference_chunk[valid_inds] if reference_snippet_classifiers is not None else None
 
         # now that we offset them we need to re-sort
         sort_inds2 = np.argsort(times_chunk)
-        times_chunk = times_chunk[sort_inds2]
-        labels_chunk = labels_chunk[sort_inds2]
+        times_chunk: npt.NDArray[np.int32] = times_chunk[sort_inds2]
+        labels_chunk: npt.NDArray[np.int32] = labels_chunk[sort_inds2]
         labels_reference_chunk = labels_reference_chunk[sort_inds2] if reference_snippet_classifiers is not None else None
 
         print('Removing duplicates')
         new_inds = remove_duplicate_events(times_chunk, labels_chunk, tol=time_radius)
-        times_chunk = times_chunk[new_inds]
-        labels_chunk = labels_chunk[new_inds]
+        times_chunk: npt.NDArray[np.int32] = times_chunk[new_inds]
+        labels_chunk: npt.NDArray[np.int32] = labels_chunk[new_inds]
         labels_reference_chunk = labels_reference_chunk[new_inds] if reference_snippet_classifiers is not None else None
 
         # remove events in the margins
         valid_inds = np.where((chunk.padding_left <= times_chunk) & (times_chunk < chunk.total_size - chunk.padding_right))[0]
-        times_chunk = times_chunk[valid_inds]
-        labels_chunk = labels_chunk[valid_inds]
+        times_chunk: npt.NDArray[np.int32] = times_chunk[valid_inds]
+        labels_chunk: npt.NDArray[np.int32] = labels_chunk[valid_inds]
         labels_reference_chunk = labels_reference_chunk[valid_inds] if reference_snippet_classifiers is not None else None
 
-        # don't forget to add the chunk start time
-        times_list.append(times_chunk + chunk.start - chunk.padding_left)
+        # don't forget to cast to int64 add the chunk start time
+        times_list.append(
+            times_chunk.astype(np.int64) + chunk.start - chunk.padding_left
+        )
         labels_list.append(labels_chunk)
         if reference_snippet_classifiers is not None:
             labels_reference_list.append(labels_reference_chunk)
 
     # Now concatenate the results
-    times_concat = np.concatenate(times_list)
-    labels_concat = np.concatenate(labels_list)
+    times_concat: npt.NDArray[np.int64] = np.concatenate(times_list)
+    labels_concat: npt.NDArray[np.int32] = np.concatenate(labels_list)
     labels_reference_concat = np.concatenate(labels_reference_list) if reference_snippet_classifiers is not None else None
 
     if reference_snippet_classifiers is not None:
@@ -246,7 +266,7 @@ def sorting_scheme2(
 # 1. For each unit, find the matching unit in the reference (has to be a MUTUAL >0.5 overlap)
 # 2. If the matching unit is found, then map the unit to the matching unit
 # 3. If the matching unit is not found, then map it to the smallest unused label starting with label_offset+1
-def get_labels_to_reference_labels_mapping(labels: np.ndarray, labels_reference: np.ndarray, *, label_offset) -> Dict[int, int]:
+def get_labels_to_reference_labels_mapping(labels: npt.NDArray[np.int32], labels_reference: npt.NDArray[np.int32], *, label_offset) -> Dict[int, int]:
     mapping: Dict[int, int] = {}
     unique_labels = np.sort(np.unique(labels))
     last_used_k = label_offset
@@ -267,14 +287,14 @@ def get_labels_to_reference_labels_mapping(labels: np.ndarray, labels_reference:
     return mapping
 
 class TimeChunk:
-    def __init__(self, start: int, end: int, padding_left: int, padding_right: int):
+    def __init__(self, start: np.int64, end: np.int64, padding_left: np.int32, padding_right: np.int32):
         self.start = start
         self.end = end
         self.padding_left = padding_left
         self.padding_right = padding_right
-        self.total_size = self.end - self.start + padding_left + padding_right
+        self.total_size = self.end - self.start + np.int64(padding_left) + np.int64(padding_right)
 
-def get_time_chunks(num_samples: int, chunk_size: int, padding: int) -> List[TimeChunk]:
+def get_time_chunks(num_samples: np.int64, chunk_size: np.int32, padding: np.int32) -> List[TimeChunk]:
     """Get time chunks
     Inputs:
         num_samples: number of samples in the recording
@@ -284,9 +304,9 @@ def get_time_chunks(num_samples: int, chunk_size: int, padding: int) -> List[Tim
         chunks: list of TimeChunk objects
     """
     chunks = []
-    start = 0
+    start = np.int64(0)
     while start < num_samples:
-        end = start + chunk_size
+        end = np.int64(start) + np.int64(chunk_size)
         if end > num_samples:
             end = num_samples
         padding_left = min(padding, start)
@@ -295,7 +315,7 @@ def get_time_chunks(num_samples: int, chunk_size: int, padding: int) -> List[Tim
         start = end
     return chunks
 
-def subsample_snippets(snippets: np.ndarray, max_num: int) -> np.ndarray:
+def subsample_snippets(snippets: npt.NDArray[np.float32], max_num: int) -> np.ndarray:
     """Subsample snippets
     Inputs:
         snippets: 3D array of snippets (num_snippets x T x M)

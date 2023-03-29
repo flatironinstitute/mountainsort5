@@ -23,6 +23,15 @@ def sorting_scheme1(
     Returns:
         si.BaseSorting: SpikeInterface sorting object
     """
+
+    if recording.get_num_segments() > 1:
+        print('Recording has multiple segments. Joining segments for sorting...')
+        recording_joined = si.concatenate_recordings(recording_list=[recording])
+        sorting_joined = sorting_scheme1(recording_joined, sorting_parameters=sorting_parameters)
+        print('Splitting sorting into segments to match original multisegment recording...')
+        sorting = si.split_sorting(sorting_joined, recording_joined)
+        return sorting
+
     M = recording.get_num_channels()
     N = recording.get_num_frames()
     sampling_frequency = recording.sampling_frequency

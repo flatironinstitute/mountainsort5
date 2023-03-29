@@ -12,7 +12,7 @@ def test_scheme1():
         num_channels=8,
         num_units=16,
         sampling_frequency=30000,
-        num_segments=1,
+        num_segments=2,
         seed=0
     )
 

@@ -7,7 +7,7 @@ from sklearn.neighbors import NearestNeighbors
 
 
 class SnippetClassifier:
-    def __init__(self, npca: int) -> None:
+    def __init__(self, npca: Union[int, None]) -> None:
         self.npca = npca
         self.training_batches: List[TrainingBatch] = []
         self.pca_model = None
@@ -22,7 +22,11 @@ class SnippetClassifier:
         self.M = all_training_snippets.shape[2]
         self.all_training_labels = np.concatenate([np.ones((b.num_snippets,), dtype=np.int32) * b.label for b in self.training_batches])
         self.all_training_offsets = np.concatenate([np.ones((b.num_snippets,), dtype=np.int32) * b.offset for b in self.training_batches])
-        self.pca_model = decomposition.PCA(n_components=min(self.npca, L))
+        if self.npca is not None:
+            effective_npca = self.npca
+        else:
+            effective_npca = max(12, self.M * 3)
+        self.pca_model = decomposition.PCA(n_components=min(effective_npca, L))
         self.pca_model.fit(all_training_snippets.reshape(L, self.T * self.M))
         X = self.pca_model.transform(all_training_snippets.reshape(L, self.T * self.M))
         self.nearest_neighbor_model = NearestNeighbors(n_neighbors=2)

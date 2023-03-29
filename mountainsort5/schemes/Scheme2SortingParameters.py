@@ -23,7 +23,7 @@ class Scheme2SortingParameters:
     - snippet_T2
     - snippet_mask_radius
     - max_num_snippets_per_training_batch: the maximum number of snippets to use for training the classifier in each batch
-    - classifier_npca: the number of principal components to use for the classifier
+    - classifier_npca: the number of principal components to use for each neighborhood classifier
     - training_duration_sec: the duration of the training data (in seconds)
     - training_recording_sampling_mode: how to sample the training data. If 'initial', then the first training_duration_sec of the recording will be used. If 'uniform', then the training data will be sampled uniformly in 10-second chunks from the recording.
     """
@@ -40,7 +40,7 @@ class Scheme2SortingParameters:
     snippet_T2: int=20
     snippet_mask_radius: Union[float, None]=None
     max_num_snippets_per_training_batch: int=200
-    classifier_npca: Union[int, None]=60
+    classifier_npca: Union[int, None]=None
     training_duration_sec: Union[float, None]=None
     training_recording_sampling_mode: Literal['initial', 'uniform']='initial'
 

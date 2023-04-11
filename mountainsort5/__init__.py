@@ -1,3 +1,6 @@
+import importlib.metadata
+__version__ = importlib.metadata.version("mountainsort5")
+
 from .schemes.sorting_scheme1 import sorting_scheme1
 from .schemes.Scheme1SortingParameters import Scheme1SortingParameters
 from .schemes.sorting_scheme2 import sorting_scheme2

@@ -17,20 +17,27 @@ from ..core.get_times_labels_from_sorting import get_times_labels_from_sorting
 def sorting_scheme2(
     recording: si.BaseRecording, *,
     sorting_parameters: Scheme2SortingParameters,
-    return_snippet_classifiers: bool = False,
-    reference_snippet_classifiers: Union[Dict[int, SnippetClassifier], None] = None,
-    label_offset: int = 0
+    return_snippet_classifiers: bool = False, # used in scheme 3
+    reference_snippet_classifiers: Union[Dict[int, SnippetClassifier], None] = None, # used in scheme 3
+    label_offset: int = 0 # used in scheme 3
 ) -> Union[si.BaseSorting, Tuple[si.BaseSorting, Dict[int, SnippetClassifier]]]:
     """MountainSort 5 sorting scheme 2
 
     Args:
         recording (si.BaseRecording): SpikeInterface recording object
         sorting_parameters (Scheme2SortingParameters): Sorting parameters
+        return_snippet_classifiers (bool): whether to return the snippet classifiers (used in scheme 3)
+        reference_snippet_classifiers: used in scheme 3
+        label_offset: used in scheme 3
 
     Returns:
         si.BaseSorting: SpikeInterface sorting object
+            or, if return_snippet_classifiers is True:
+        si.BaseSorting, snippet_classifiers
     """
 
+    ###################################################################
+    # Handle multi-segment recordings
     if recording.get_num_segments() > 1:
         print('Recording has multiple segments. Joining segments for sorting...')
         recording_joined = si.concatenate_recordings(recording_list=[recording])
@@ -47,12 +54,14 @@ def sorting_scheme2(
             return sorting, snippet_classifiers
         else:
             return sorting
+    ###################################################################
 
     M = recording.get_num_channels()
     N = recording.get_num_frames()
     sampling_frequency = recording.sampling_frequency
     channel_locations = recording.get_channel_locations()
 
+    # check that the sorting parameters are valid
     sorting_parameters.check_valid(M=M, N=N, sampling_frequency=sampling_frequency, channel_locations=channel_locations)
 
     # Subsample the recording for training
@@ -81,8 +90,8 @@ def sorting_scheme2(
         )
     )
     times, labels = get_times_labels_from_sorting(sorting1)
-    K = np.max(labels)
-    labels = labels + label_offset
+    K = np.max(labels) # number of clusters
+    labels = labels + label_offset # used in scheme 3
 
     print('Loading training traces')
     # Load the traces from the training recording

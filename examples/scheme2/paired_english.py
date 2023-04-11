@@ -45,7 +45,7 @@ def main():
             phase1_detect_channel_radius=200,
             detect_channel_radius=30,
             snippet_mask_radius=150,
-            training_duration_sec=120
+            training_duration_sec=300
         )
     )
     

@@ -16,7 +16,6 @@ class Scheme2SortingParameters:
     - phase1_detect_time_radius_msec: detect_time_radius_msec in phase 1
     - detect_time_radius_msec: detect_time_radius_msec in phase 2
     - phase1_npca_per_branch: npca_per_branch in phase 1
-    - phase1_pairwise_merge_step: pairwise_merge_step in phase 1
     - detect_sign
     - detect_threshold: detect_threshold in phase 2
     - snippet_T1
@@ -33,7 +32,7 @@ class Scheme2SortingParameters:
     phase1_detect_time_radius_msec: float=1.5
     detect_time_radius_msec: float=0.5
     phase1_npca_per_branch: int=12
-    phase1_pairwise_merge_step: bool=True
+    phase1_pairwise_merge_step: bool=False # deprecated
     detect_sign: int=-1
     detect_threshold: float=5.5
     snippet_T1: int=20

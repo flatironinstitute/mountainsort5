@@ -15,7 +15,6 @@ class Scheme1SortingParameters:
     - snippet_T2: the number of timepoints after the event to include in the snippet
     - snippet_mask_radius: the radius (in units of channel locations) for making a snippet around the central channel
     - npca_per_branch: the number of PCA components to compute for each branch of clustering
-    - pairwise_merge_step: whether to do the pairwise merge step
     """
     detect_threshold: float=5.5
     detect_channel_radius: Union[float, None]=None
@@ -25,7 +24,7 @@ class Scheme1SortingParameters:
     snippet_T2: int=20
     snippet_mask_radius: Union[float, None]=None
     npca_per_branch: int=12
-    pairwise_merge_step: bool=True
+    pairwise_merge_step: bool=False # deprecated
 
     def check_valid(self, *, M: int, N: int, sampling_frequency: float, channel_locations: npt.NDArray[np.float32]):
         """Internal function for checking validity of parameters"""

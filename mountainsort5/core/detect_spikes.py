@@ -31,6 +31,10 @@ def detect_spikes(
             dist0 = np.sqrt(np.sum((channel_locations[m] - channel_locations[m2]) ** 2))
             if (channel_radius is None) or (dist0 <= channel_radius):
                 adjacency[m].append(m2)
+    print('')
+    print(f'Adjacency for detect spikes with channel radius {channel_radius}')
+    print(adjacency)
+    print('')
     
     inds1, inds2 = np.nonzero(traces <= -detect_threshold)
     

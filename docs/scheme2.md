@@ -62,10 +62,6 @@ This is just like the `phase1_detect_time_radius_msec` parameter, but it is used
 
 The `npca_per_branch` parameter for phase 1 (see [scheme 1](./scheme1.md)).
 
-**phase1_pairwise_merge_step**
-
-The `pairwise_merge_step` parameter for phase 1 (see [scheme 1](./scheme1.md)).
-
 **detect_sign**
 
 Same as in scheme 1 (see [scheme 1](./scheme1.md)).

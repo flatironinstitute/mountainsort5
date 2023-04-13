@@ -1,13 +1,12 @@
-from typing import Union
 import numpy as np
+import numpy.typing as npt
 import math
 import spikeinterface as si
 from .Scheme1SortingParameters import Scheme1SortingParameters
 from ..core.detect_spikes import detect_spikes
 from ..core.extract_snippets import extract_snippets
-from ..core.cluster_snippets import cluster_snippets
+from ..core.branch_cluster import branch_cluster
 from ..core.compute_templates import compute_templates
-from ..core.pairwise_merge_step import pairwise_merge_step
 
 
 def sorting_scheme1(
@@ -66,6 +65,9 @@ def sorting_scheme1(
         verbose=True
     )
 
+    # this is important because isosplit does not do well with duplicate points
+    times, channel_indices = remove_duplicate_times(times, channel_indices)
+
     print(f'Extracting {len(times)} snippets')
     snippets = extract_snippets( # L x T x M
         traces=traces,
@@ -81,8 +83,8 @@ def sorting_scheme1(
     assert snippets.shape[2] == M
 
     print('Clustering snippets')
-    labels = cluster_snippets(
-        snippets=snippets,
+    labels = branch_cluster(
+        X=snippets.reshape((L, T * M)),
         npca_per_branch=sorting_parameters.npca_per_branch
     )
     K = int(np.max(labels))
@@ -92,17 +94,34 @@ def sorting_scheme1(
     templates = compute_templates(snippets=snippets, labels=labels) # K x T x M
     peak_channel_indices = [np.argmin(np.min(templates[i], axis=0)) for i in range(K)]
 
-    if sorting_parameters.pairwise_merge_step:
-        print('Pairwise merge step')
-        times, labels = pairwise_merge_step(
-            templates=templates,
-            snippets=snippets,
-            labels=labels,
-            times=times,
-            detect_sign=sorting_parameters.detect_sign,
-            unit_ids=np.arange(1, K + 1).astype(np.int32),
-            detect_time_radius=time_radius
-        )
+    print('Determining optimal alignment of templates')
+    offsets = align_templates(templates)
+
+    print('Aligning snippets')
+    snippets = align_snippets(snippets, offsets, labels)
+    # this is tricky - we need to subtract the offset to correspond to shifting the template
+    times = offset_times(times, -offsets, labels)
+
+    print('Clustering aligned snippets')
+    labels = branch_cluster(
+        X=snippets.reshape((L, T * M)),
+        npca_per_branch=sorting_parameters.npca_per_branch
+    )
+    K = int(np.max(labels))
+    print(f'Found {K} clusters')
+
+    print('Computing templates')
+    templates = compute_templates(snippets=snippets, labels=labels) # K x T x M
+    peak_channel_indices = [np.argmin(np.min(templates[i], axis=0)) for i in range(K)]
+
+    print('Offsetting times to peak')
+    # Now we need to offset the times again so that the spike times correspond to actual peaks
+    offsets_to_peak = determine_offsets_to_peak(templates, detect_sign=sorting_parameters.detect_sign, T1=sorting_parameters.snippet_T1)
+    print('Offsets to peak:', offsets_to_peak)
+    # This time we need to add the offset
+    times = offset_times(times, offsets_to_peak, labels)
+
+    # TODO: make sure the times are not out of bounds now that we have offset them a couple times
 
     print('Reordering units')
     # relabel so that units are ordered by channel
@@ -118,3 +137,89 @@ def sorting_scheme1(
     sorting = si.NumpySorting.from_times_labels(times_list=[times], labels_list=[labels], sampling_frequency=sampling_frequency)
 
     return sorting
+
+def remove_duplicate_times(times: npt.NDArray[np.int32], labels: npt.NDArray[np.int32]):
+    inds = np.where(np.diff(times) > 0)[0]
+    inds = np.concatenate([[0], inds + 1])
+    times2 = times[inds]
+    labels2 = labels[inds]
+    return times2, labels2
+
+def align_templates(templates: npt.NDArray[np.float32]):
+    K = templates.shape[0]
+    T = templates.shape[1]
+    M = templates.shape[2]
+    offsets = np.zeros((K,), dtype=np.int32)
+    pairwise_optimal_offsets = np.zeros((K, K), dtype=np.int32)
+    pairwise_inner_products = np.zeros((K, K), dtype=np.float32)
+    for k1 in range(K):
+        for k2 in range(K):
+            offset, inner_product = compute_pairwise_optimal_offset(templates[k1], templates[k2])
+            pairwise_optimal_offsets[k1, k2] = offset
+            pairwise_inner_products[k1, k2] = inner_product
+    for passnum in range(20):
+        something_changed = False
+        for k1 in range(K):
+            weighted_sum = 0
+            total_weight = 0
+            for k2 in range(K):
+                if k1 != k2:
+                    offset = pairwise_optimal_offsets[k1, k2] + offsets[k2]
+                    weight = pairwise_inner_products[k1, k2]
+                    weighted_sum += weight * offset
+                    total_weight += weight
+            avg_offset = int(weighted_sum / total_weight)
+            if avg_offset != offsets[k1]:
+                something_changed = True
+                offsets[k1] = avg_offset
+        if not something_changed:
+            print('Template alignment converged.')
+            break
+    print('Align templates offsets: ', offsets)
+    return offsets
+    
+
+def compute_pairwise_optimal_offset(template1: npt.NDArray[np.float32], template2: npt.NDArray[np.float32]):
+    T = template1.shape[0]
+    best_inner_product = -np.Inf
+    best_offset = 0
+    for offset in range(T):
+        inner_product = np.sum(np.roll(template1, shift=offset, axis=0) * template2)
+        if inner_product > best_inner_product:
+            best_inner_product = inner_product
+            best_offset = offset
+    if best_offset > T // 2:
+        best_offset = best_offset - T
+    return best_offset, best_inner_product
+
+def align_snippets(snippets: npt.NDArray[np.float32], offsets: npt.NDArray[np.int32], labels: npt.NDArray[np.int32]):
+    snippets2 = np.zeros_like(snippets)
+    for k in range(1, np.max(labels) + 1):
+        inds = np.where(labels == k)[0]
+        snippets2[inds] = np.roll(snippets[inds], shift=offsets[k - 1], axis=1)
+    return snippets2
+
+def offset_times(times: npt.NDArray[np.int32], offsets: npt.NDArray[np.int32], labels: npt.NDArray[np.int32]):
+    times2 = np.zeros_like(times)
+    for k in range(1, np.max(labels) + 1):
+        inds = np.where(labels == k)[0]
+        times2[inds] = times[inds] + offsets[k - 1]
+    return times2
+
+def determine_offsets_to_peak(templates: npt.NDArray[np.float32], *, detect_sign: int, T1: int):
+    K = templates.shape[0]
+
+    if detect_sign < 0:
+        A = -templates
+    elif detect_sign > 0: # pragma: no cover
+        A = templates # pragma: no cover
+    else:
+        A = np.abs(templates) # pragma: no cover
+    
+    offsets_to_peak = np.zeros((K,), dtype=np.int32)
+    for k in range(K):
+        peak_channel = np.argmax(np.max(A[k], axis=0))
+        peak_time = np.argmax(A[k][:, peak_channel])
+        offset_to_peak = peak_time - T1
+        offsets_to_peak[k] = offset_to_peak
+    return offsets_to_peak

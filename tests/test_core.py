@@ -7,8 +7,7 @@ from mountainsort5.core.detect_spikes import detect_spikes
 from mountainsort5.core.extract_snippets import extract_snippets, extract_snippets_in_channel_neighborhood
 from mountainsort5.core.get_sampled_recording_for_training import get_sampled_recording_for_training
 from mountainsort5.core.get_block_recording_for_scheme3 import get_block_recording_for_scheme3
-from mountainsort5.core.cluster_snippets import cluster_snippets
-from mountainsort5.core.pairwise_merge_step import pairwise_merge_step
+from mountainsort5.core.branch_cluster import branch_cluster
 from mountainsort5.core.get_times_labels_from_sorting import get_times_labels_from_sorting
 
 
@@ -161,7 +160,7 @@ def test_get_block_recording_for_scheme3():
         recording2.get_traces()
     )
 
-def test_cluster_snippets():
+def test_branch_cluster():
     N = 1000
     L = 100
     M = 4
@@ -171,38 +170,12 @@ def test_cluster_snippets():
     traces[500:] += 10 # offset this so we get more than one cluster (important for coverage of cluster_snippets)
     times = np.random.randint(T1, N - T2, size=(L,))
     snippets = extract_snippets(traces, times=times, channel_locations=None, mask_radius=None, channel_indices=None, T1=T1, T2=T2)
-    labels = cluster_snippets(
-        snippets,
+    labels = branch_cluster(
+        snippets.reshape((L, M * (T1 + T2))),
         npca_per_branch=10
     )
     assert np.min(labels) == 1
     assert len(labels) == L
-
-def test_pairwise_merge_step():
-    N = 1000
-    L = 100
-    M = 4
-    T1 = 20
-    T2 = 20
-    traces = np.random.normal(size=(N, M))
-    times = np.random.randint(T1, N - T2, size=(L,))
-    snippets = extract_snippets(traces, times=times, channel_locations=None, mask_radius=None, channel_indices=None, T1=T1, T2=T2)
-    labels = cluster_snippets(
-        snippets,
-        npca_per_branch=10
-    )
-    templates = compute_templates(snippets, labels)
-    new_times, new_labels = pairwise_merge_step(
-        snippets=snippets,
-        labels=labels,
-        templates=templates,
-        times=times,
-        detect_sign=-1,
-        unit_ids=np.unique(labels),
-        detect_time_radius=10
-    )
-    assert len(new_times) == len(new_labels)
-    assert len(new_times) <= len(times)
 
 def test_get_times_labels_from_sorting():
     recording, sorting = se.toy_example(duration=6, num_channels=4, num_units=10, sampling_frequency=30000, seed=0, num_segments=1)

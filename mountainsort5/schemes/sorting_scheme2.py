@@ -9,7 +9,7 @@ from ..core.detect_spikes import detect_spikes
 from ..core.extract_snippets import extract_snippets, extract_snippets_in_channel_neighborhood
 from .sorting_scheme1 import sorting_scheme1
 from ..core.SnippetClassifier import SnippetClassifier
-from ..core.pairwise_merge_step import remove_duplicate_events
+from ..core.remove_duplicate_events import remove_duplicate_events
 from ..core.get_sampled_recording_for_training import get_sampled_recording_for_training
 from ..core.get_times_labels_from_sorting import get_times_labels_from_sorting
 
@@ -85,8 +85,7 @@ def sorting_scheme2(
             snippet_mask_radius=sorting_parameters.snippet_mask_radius,
             snippet_T1=sorting_parameters.snippet_T1,
             snippet_T2=sorting_parameters.snippet_T2,
-            npca_per_branch=sorting_parameters.phase1_npca_per_branch,
-            pairwise_merge_step=sorting_parameters.phase1_pairwise_merge_step
+            npca_per_branch=sorting_parameters.phase1_npca_per_branch
         )
     )
     times, labels = get_times_labels_from_sorting(sorting1)

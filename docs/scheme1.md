@@ -57,7 +57,3 @@ If specified, this parameter determines the spatial radius (in units of the chan
 **npca_per_branch**
 
 MountainSort utilizes a branching method for clustering. After extracting spike snippets from the preprocessed traces, the data undergo dimension reduction through PCA before clustering. Initially, `npca_per_branch` PCA features are computed, followed by Isosplit clustering. If more than one cluster is detected, each of them becomes a new branch, and feature extraction is performed again within each branch separately, followed by Isosplit clustering to subdivide the clusters further. This process is repeated recursively until each leaf branch returns a single cluster. At each stage, the same number of PCA components (npca_per_branch) is used. Recomputing features on each branch offers an advantage, as it allows the refined components to capture features that can better differentiate between clusters within the same overall feature space region.
-
-**pairwise_merge_step**
-
-This boolean parameter has a default value of True and determines whether a pairwise merge step is performed after the clustering phase. This step is important for merging clusters that represent the same neuron but were detected on different central channels. This can happen when there is not a single clear peak channel for the unit.

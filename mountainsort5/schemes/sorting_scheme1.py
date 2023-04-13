@@ -121,7 +121,15 @@ def sorting_scheme1(
     # This time we need to add the offset
     times = offset_times(times, offsets_to_peak, labels)
 
-    # TODO: make sure the times are not out of bounds now that we have offset them a couple times
+    # Now we need to make sure the times are in order, because we have offset them
+    sort_inds = np.argsort(times)
+    times = times[sort_inds]
+    labels = labels[sort_inds]
+
+    # also make sure none of the times are out of bounds now that we have offset them a couple times
+    inds_okay = np.where((times >= sorting_parameters.snippet_T1) & (times < N - sorting_parameters.snippet_T2))[0]
+    times = times[inds_okay]
+    labels = labels[inds_okay]
 
     print('Reordering units')
     # relabel so that units are ordered by channel

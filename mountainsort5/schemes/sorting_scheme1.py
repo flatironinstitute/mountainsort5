@@ -168,7 +168,10 @@ def align_templates(templates: npt.NDArray[np.float32]):
                     weight = pairwise_inner_products[k1, k2]
                     weighted_sum += weight * offset
                     total_weight += weight
-            avg_offset = int(weighted_sum / total_weight)
+            if total_weight > 0:
+                avg_offset = int(weighted_sum / total_weight)
+            else:
+                avg_offset = 0
             if avg_offset != offsets[k1]:
                 something_changed = True
                 offsets[k1] = avg_offset

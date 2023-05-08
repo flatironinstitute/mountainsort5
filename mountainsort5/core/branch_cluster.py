@@ -37,21 +37,30 @@ def branch_cluster(
             ret[inds0[labels0 == k2]] = last_ret_k
     # test merging of clusters
     K_total = np.max(ret)
+    to_merge = []
+    for k1 in range(1, K_total + 1):
+        inds1 = np.nonzero(ret == k1)[0]
+        for k2 in range(k1 + 1, K_total + 1):
+            inds2 = np.nonzero(ret == k2)[0]
+            if len(inds1) == 0 or len(inds2) == 0:
+                continue
+            X1 = X[inds1]
+            X2 = X[inds2]
+            if _should_merge(X1, X2):
+                to_merge.append((k1, k2))
+
     something_changed = True
     while something_changed:
         something_changed = False
-        for k1 in range(1, K_total + 1):
+        for merge_item in to_merge:
+            k1, k2 = merge_item
             inds1 = np.nonzero(ret == k1)[0]
-            for k2 in range(k1 + 1, K_total + 1):
-                inds2 = np.nonzero(ret == k2)[0]
-                if len(inds1) == 0 or len(inds2) == 0:
-                    continue
-                X1 = X[inds1]
-                X2 = X[inds2]
-                if _should_merge(X1, X2):
-                    print(f'Merging {k1} and {k2}')
-                    something_changed = True
-                    ret[inds2] = k1
+            inds2 = np.nonzero(ret == k2)[0]
+            if len(inds1) == 0 or len(inds2) == 0:
+                continue
+            print(f'Merging {k1} and {k2}')
+            ret[inds2] = k1
+            something_changed = True
     # consolidate labels
     K_total = np.max(ret)
     ret2 = np.zeros((L,), dtype=np.int32)

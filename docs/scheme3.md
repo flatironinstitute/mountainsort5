@@ -14,7 +14,7 @@ recording = ... # load your recording using SpikeInterface
 # Make sure the recording is preprocessed appropriately
 # lazy preprocessing
 recording_filtered = spre.bandpass_filter(recording, freq_min=300, freq_max=6000)
-recording_preprocessed: si.BaseRecording = spre.whiten(recording_filtered)
+recording_preprocessed: si.BaseRecording = spre.whiten(recording_filtered, dtype='float32')
 
 # use scheme 3
 sorting = ms5.sorting_scheme3(

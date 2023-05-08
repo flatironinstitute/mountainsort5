@@ -6,7 +6,7 @@ from .compute_pca_features import compute_pca_features
 
 
 def branch_cluster(
-    X: npt.NDArray[np.float32], *,
+    X: npt.NDArray[np.float32], *, # L x D
     npca_per_branch: int,
     inds: Union[npt.NDArray[np.int32], None]=None # pass in inds so that we don't keep making copies of the array
 ) -> npt.NDArray[np.int32]:
@@ -35,4 +35,47 @@ def branch_cluster(
         for k2 in range(1, K2 + 1):
             last_ret_k += 1
             ret[inds0[labels0 == k2]] = last_ret_k
-    return ret
+    # test merging of clusters
+    K_total = np.max(ret)
+    something_changed = True
+    while something_changed:
+        something_changed = False
+        for k1 in range(1, K_total + 1):
+            inds1 = np.nonzero(ret == k1)[0]
+            for k2 in range(k1 + 1, K_total + 1):
+                inds2 = np.nonzero(ret == k2)[0]
+                if len(inds1) == 0 or len(inds2) == 0:
+                    continue
+                X1 = X[inds1]
+                X2 = X[inds2]
+                if _should_merge(X1, X2):
+                    print(f'Merging {k1} and {k2}')
+                    something_changed = True
+                    ret[inds2] = k1
+    # consolidate labels
+    K_total = np.max(ret)
+    ret2 = np.zeros((L,), dtype=np.int32)
+    k2 = 1
+    for k in range(1, K_total + 1):
+        inds = np.nonzero(ret == k)[0]
+        if len(inds) > 0:
+            ret2[inds] = k2
+            k2 += 1
+    return ret2
+
+def _should_merge(X1: npt.NDArray[np.float32], X2: npt.NDArray[np.float32]):
+    discriminating_direction = np.mean(X2, axis=0) - np.mean(X1, axis=0)
+    discriminating_direction /= np.linalg.norm(discriminating_direction)
+    proj1 = np.dot(X1, discriminating_direction)
+    proj2 = np.dot(X2, discriminating_direction)
+    proj_union = np.concatenate((proj1, proj2))
+    labels = np.concatenate((np.zeros((len(proj1),), dtype=np.int32), np.ones((len(proj2),), dtype=np.int32)))
+    sorted_inds = np.argsort(proj_union)
+    sorted_labels = labels[sorted_inds]
+    cumsum_labels = np.cumsum(sorted_labels)
+    num_violations = np.sum((sorted_labels == 0) * cumsum_labels)
+    num_comparisons = len(proj1) * len(proj2)
+    if num_violations > 0.3 * num_comparisons:
+        return True
+    return False
+

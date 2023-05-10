@@ -7,7 +7,7 @@ from mountainsort5.core.detect_spikes import detect_spikes
 from mountainsort5.core.extract_snippets import extract_snippets, extract_snippets_in_channel_neighborhood
 from mountainsort5.core.get_sampled_recording_for_training import get_sampled_recording_for_training
 from mountainsort5.core.get_block_recording_for_scheme3 import get_block_recording_for_scheme3
-from mountainsort5.core.branch_cluster import branch_cluster
+from mountainsort5.core.isosplit6_subdivision_method import isosplit6_subdivision_method
 from mountainsort5.core.get_times_labels_from_sorting import get_times_labels_from_sorting
 
 
@@ -160,7 +160,7 @@ def test_get_block_recording_for_scheme3():
         recording2.get_traces()
     )
 
-def test_branch_cluster():
+def test_subdivision_cluster():
     N = 1000
     L = 100
     M = 4
@@ -170,9 +170,9 @@ def test_branch_cluster():
     traces[500:] += 10 # offset this so we get more than one cluster (important for coverage of cluster_snippets)
     times = np.random.randint(T1, N - T2, size=(L,))
     snippets = extract_snippets(traces, times=times, channel_locations=None, mask_radius=None, channel_indices=None, T1=T1, T2=T2)
-    labels = branch_cluster(
+    labels = isosplit6_subdivision_method(
         snippets.reshape((L, M * (T1 + T2))),
-        npca_per_branch=10
+        npca_per_subdivision=10
     )
     assert np.min(labels) == 1
     assert len(labels) == L

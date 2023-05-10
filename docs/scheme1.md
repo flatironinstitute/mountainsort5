@@ -54,9 +54,13 @@ These parameters determine the time duration (units of samples) of the extracted
 
 If specified, this parameter determines the spatial radius (in units of the channel locations) of a mask that is applied to the extracted spike snippets. For spikes centered at channel `m` the mask includes all channels within `snippet_mask_radius` of channel $m$, and the signal outside of the mask region is set to zero. This is useful for removing signal from time-overlapping, spatially-separated events during the clustering phase.
 
-**npca_per_branch**
+**npca_per_channel**
 
-MountainSort utilizes a branching method for clustering. After extracting spike snippets from the preprocessed traces, the data undergo dimension reduction through PCA before clustering. Initially, `npca_per_branch` PCA features are computed, followed by Isosplit clustering. If more than one cluster is detected, each of them becomes a new branch, and feature extraction is performed again within each branch separately, followed by Isosplit clustering to subdivide the clusters further. This process is repeated recursively until each leaf branch returns a single cluster. At each stage, the same number of PCA components (npca_per_branch) is used. Recomputing features on each branch offers an advantage, as it allows the refined components to capture features that can better differentiate between clusters within the same overall feature space region.
+This parameter affects dimension reduction prior to clustering. If the dataset has `M` channels, then `M * npca_per_channel` PCA features are computed for each spike snippet. The default value is 3, which is appropriate for most recordings.
+
+**npca_per_subdivision**
+
+MountainSort utilizes a subdivision method for clustering. After extracting spike snippets from the preprocessed traces, the data undergo dimension reduction through PCA before clustering. Initially, `npca_per_subdivision` PCA features are computed, followed by Isosplit clustering. If more than one cluster is detected, the dataset is split into two subdivisions, and feature extraction is performed again within each subdivision separately, followed by Isosplit clustering to subdivide the clusters further. This process is repeated recursively until each leaf subdivision returns a single cluster. At each stage, the same number of PCA components (npca_per_subdivision) is used. Recomputing features on each subdivision offers an advantage, as it allows the refined components to capture features that can better differentiate between clusters within the same overall feature space region.
 
 ## Algorithm
 
@@ -64,11 +68,11 @@ The algorithm is as follows:
 
 * Detect spikes in the preprocessed traces
 * Extract spike snippets
-* Cluster snippets using isosplit6 and the branch method (includes PCA dimension reduction)
+* Cluster snippets using isosplit6 and the subdivision method (includes PCA dimension reduction)
 * Use cluster templates to align snippets for a second pass of clustering
-* Cluster aligned snippets using isosplit6 and the branch method in a second pass
+* Cluster aligned snippets using isosplit6 and the subdivision method in a second pass
 
-The branch method of clustering is described above.
+The subdivision method of clustering is described above.
 
 [Learn more about Isosplit](https://github.com/magland/isosplit6)
 

@@ -85,7 +85,8 @@ def sorting_scheme2(
             snippet_mask_radius=sorting_parameters.snippet_mask_radius,
             snippet_T1=sorting_parameters.snippet_T1,
             snippet_T2=sorting_parameters.snippet_T2,
-            npca_per_branch=sorting_parameters.phase1_npca_per_branch
+            npca_per_channel=sorting_parameters.phase1_npca_per_channel,
+            npca_per_subdivision=sorting_parameters.phase1_npca_per_subdivision
         )
     )
     times, labels = get_times_labels_from_sorting(sorting1)

@@ -5,8 +5,9 @@ import spikeinterface as si
 from .Scheme1SortingParameters import Scheme1SortingParameters
 from ..core.detect_spikes import detect_spikes
 from ..core.extract_snippets import extract_snippets
-from ..core.branch_cluster import branch_cluster
+from ..core.isosplit6_subdivision_method import isosplit6_subdivision_method
 from ..core.compute_templates import compute_templates
+from ..core.compute_pca_features import compute_pca_features
 
 
 def sorting_scheme1(
@@ -83,9 +84,10 @@ def sorting_scheme1(
     assert snippets.shape[2] == M
 
     print('Clustering snippets')
-    labels = branch_cluster(
-        X=snippets.reshape((L, T * M)),
-        npca_per_branch=sorting_parameters.npca_per_branch
+    features = compute_pca_features(snippets.reshape((L, T * M)), sorting_parameters.npca_per_channel * M)
+    labels = isosplit6_subdivision_method(
+        X=features,
+        npca_per_subdivision=sorting_parameters.npca_per_subdivision
     )
     K = int(np.max(labels))
     print(f'Found {K} clusters')
@@ -103,9 +105,10 @@ def sorting_scheme1(
     times = offset_times(times, -offsets, labels)
 
     print('Clustering aligned snippets')
-    labels = branch_cluster(
-        X=snippets.reshape((L, T * M)),
-        npca_per_branch=sorting_parameters.npca_per_branch
+    features = compute_pca_features(snippets.reshape((L, T * M)), sorting_parameters.npca_per_channel * M)
+    labels = isosplit6_subdivision_method(
+        X=features,
+        npca_per_subdivision=sorting_parameters.npca_per_subdivision
     )
     K = int(np.max(labels))
     print(f'Found {K} clusters')

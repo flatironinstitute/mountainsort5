@@ -15,7 +15,8 @@ class Scheme2SortingParameters:
     - phase1_detect_threshold: detect_threshold in phase 1
     - phase1_detect_time_radius_msec: detect_time_radius_msec in phase 1
     - detect_time_radius_msec: detect_time_radius_msec in phase 2
-    - phase1_npca_per_branch: npca_per_branch in phase 1
+    - phase1_npca_per_channel: npca_per_channel in phase 1
+    - phase1_npca_per_subdivision: npca_per_subdivision in phase 1
     - detect_sign
     - detect_threshold: detect_threshold in phase 2
     - snippet_T1
@@ -31,7 +32,9 @@ class Scheme2SortingParameters:
     phase1_detect_threshold: float=5.5
     phase1_detect_time_radius_msec: float=1.5
     detect_time_radius_msec: float=0.5
-    phase1_npca_per_branch: int=12
+    phase1_npca_per_channel: int=3
+    phase1_npca_per_subdivision: int=10
+    subdivision: int=10
     phase1_pairwise_merge_step: bool=False # deprecated
     detect_sign: int=-1
     detect_threshold: float=5.5
@@ -58,5 +61,6 @@ class Scheme2SortingParameters:
         assert self.phase1_detect_time_radius_msec > 0 and self.phase1_detect_time_radius_msec <= 1e4
         assert self.phase1_detect_threshold > 0
         assert self.detect_sign in [-1, 0, 1]
-        assert self.phase1_npca_per_branch >= 1 and self.phase1_npca_per_branch <= 1e3
+        assert self.phase1_npca_per_channel >=1 and self.phase1_npca_per_channel <= 1e3
+        assert self.phase1_npca_per_subdivision >= 1 and self.phase1_npca_per_subdivision <= 1e3
 

@@ -58,9 +58,13 @@ The `detect_time_radius_msec` parameter for phase 1 (see [scheme 1](./scheme1.md
 
 This is just like the `phase1_detect_time_radius_msec` parameter, but it is used for phase 2.
 
-**phase1_npca_per_branch**
+**phase1_npca_per_channel**
 
-The `npca_per_branch` parameter for phase 1 (see [scheme 1](./scheme1.md)).
+The `npca_per_channel` parameter for phase 1 (see [scheme 1](./scheme1.md)).
+
+**phase1_npca_per_subdivision**
+
+The `npca_per_subdivision` parameter for phase 1 (see [scheme 1](./scheme1.md)).
 
 **detect_sign**
 

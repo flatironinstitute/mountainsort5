@@ -84,7 +84,7 @@ def sorting_scheme1(
     assert snippets.shape[2] == M
 
     print('Clustering snippets')
-    features = compute_pca_features(snippets.reshape((L, T * M)), sorting_parameters.npca_per_channel * M)
+    features = compute_pca_features(snippets.reshape((L, T * M)), npca=sorting_parameters.npca_per_channel * M)
     labels = isosplit6_subdivision_method(
         X=features,
         npca_per_subdivision=sorting_parameters.npca_per_subdivision
@@ -105,7 +105,7 @@ def sorting_scheme1(
     times = offset_times(times, -offsets, labels)
 
     print('Clustering aligned snippets')
-    features = compute_pca_features(snippets.reshape((L, T * M)), sorting_parameters.npca_per_channel * M)
+    features = compute_pca_features(snippets.reshape((L, T * M)), npca=sorting_parameters.npca_per_channel * M)
     labels = isosplit6_subdivision_method(
         X=features,
         npca_per_subdivision=sorting_parameters.npca_per_subdivision

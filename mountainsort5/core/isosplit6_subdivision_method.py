@@ -3,7 +3,7 @@ import numpy as np
 import numpy.typing as npt
 import warnings
 from scipy.cluster.hierarchy import ClusterWarning
-import isosplit6
+from isosplit6 import isosplit6
 from .compute_pca_features import compute_pca_features
 
 

@@ -84,7 +84,7 @@ The maximum number of snippets to use for training the classifier in each batch.
 
 **classifier_npca**
 
-The number of principal components to use for each neighborhood classifier. If None (the default), then the number of principal components will be automatically determined as `min(12, M * 3)` where `M` is the number of channels in the neighborhood.
+The number of principal components to use for each neighborhood classifier. If None (the default), then the number of principal components will be automatically determined as `max(12, M * 3)` where `M` is the number of channels in the neighborhood.
 
 **training_duration_sec**
 

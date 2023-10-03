@@ -13,8 +13,8 @@ recording = ... # load your recording using SpikeInterface
 
 # Make sure the recording is preprocessed appropriately
 
-# Note that if this is a float recording, you may need to scale it
-# to a reasonable voltage range in order for whitening to work properly
+# Note that if the recording traces are of float type, you may need to scale
+# it to a reasonable voltage range in order for whitening to work properly
 # recording = spre.scale(recording, gain=...)
 
 # lazy preprocessing

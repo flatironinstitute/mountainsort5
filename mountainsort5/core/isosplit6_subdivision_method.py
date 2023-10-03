@@ -36,7 +36,10 @@ def isosplit6_subdivision_method(
         return np.zeros((0,), dtype=np.int32)
     features = compute_pca_features(X_sub, npca=npca_per_subdivision)
     labels = isosplit6(features)
-    K = np.max(labels)
+    if len(labels) > 0:
+        K = np.max(labels)
+    else:
+        K = 0
     if K <= 1:
         return labels
     centroids = np.zeros((K, X.shape[1]), dtype=np.float32)

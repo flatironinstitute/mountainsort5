@@ -89,7 +89,10 @@ def sorting_scheme1(
         X=features,
         npca_per_subdivision=sorting_parameters.npca_per_subdivision
     )
-    K = int(np.max(labels))
+    if len(labels) > 0:
+        K = int(np.max(labels))
+    else:
+        K = 0
     print(f'Found {K} clusters')
 
     print('Computing templates')
@@ -110,7 +113,10 @@ def sorting_scheme1(
         X=features,
         npca_per_subdivision=sorting_parameters.npca_per_subdivision
     )
-    K = int(np.max(labels))
+    if len(labels) > 0:
+        K = int(np.max(labels))
+    else:
+        K = 0
     print(f'Found {K} clusters')
 
     print('Computing templates')
@@ -209,6 +215,8 @@ def compute_pairwise_optimal_offset(template1: npt.NDArray[np.float32], template
     return best_offset, best_inner_product
 
 def align_snippets(snippets: npt.NDArray[np.float32], offsets: npt.NDArray[np.int32], labels: npt.NDArray[np.int32]):
+    if len(labels) == 0:
+        return snippets
     snippets2 = np.zeros_like(snippets)
     for k in range(1, np.max(labels) + 1):
         inds = np.where(labels == k)[0]
@@ -216,6 +224,8 @@ def align_snippets(snippets: npt.NDArray[np.float32], offsets: npt.NDArray[np.in
     return snippets2
 
 def offset_times(times: npt.NDArray[np.int32], offsets: npt.NDArray[np.int32], labels: npt.NDArray[np.int32]):
+    if len(labels) == 0:
+        return times
     times2 = np.zeros_like(times)
     for k in range(1, np.max(labels) + 1):
         inds = np.where(labels == k)[0]

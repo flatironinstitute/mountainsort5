@@ -14,6 +14,11 @@ import mountainsort5 as ms5
 recording = ... # load your recording using SpikeInterface
 
 # Make sure the recording is preprocessed appropriately
+
+# Note that if this is a float recording, you may need to scale it
+# to a reasonable voltage range in order for whitening to work properly
+# recording = spre.scale(recording, gain=...)
+
 # lazy preprocessing
 recording_filtered = spre.bandpass_filter(recording, freq_min=300, freq_max=6000)
 recording_preprocessed: si.BaseRecording = spre.whiten(recording_filtered, dtype='float32')

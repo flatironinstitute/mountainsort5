@@ -26,7 +26,8 @@ def main():
             phase1_detect_channel_radius=150,
             detect_channel_radius=50,
             training_duration_sec=60
-        )
+        ),
+        chunk_duration_sec=20
     )
     
     elapsed_sec = time.time() - timer

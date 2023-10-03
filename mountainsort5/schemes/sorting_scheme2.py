@@ -19,7 +19,8 @@ def sorting_scheme2(
     sorting_parameters: Scheme2SortingParameters,
     return_snippet_classifiers: bool = False, # used in scheme 3
     reference_snippet_classifiers: Union[Dict[int, SnippetClassifier], None] = None, # used in scheme 3
-    label_offset: int = 0 # used in scheme 3
+    label_offset: int = 0, # used in scheme 3
+    chunk_duration_sec: Union[float, None] = 10.0 
 ) -> Union[si.BaseSorting, Tuple[si.BaseSorting, Dict[int, SnippetClassifier]]]:
     """MountainSort 5 sorting scheme 2
 
@@ -29,6 +30,7 @@ def sorting_scheme2(
         return_snippet_classifiers (bool): whether to return the snippet classifiers (used in scheme 3)
         reference_snippet_classifiers: used in scheme 3
         label_offset: used in scheme 3
+        chunk_duration_sec: length of each chunk during inference
 
     Returns:
         si.BaseSorting: SpikeInterface sorting object
@@ -172,7 +174,8 @@ def sorting_scheme2(
 
     # Now that we have the classifier, we can do the full sorting
     # Iterate over time chunks, detect and classify all spikes, and collect the results
-    chunk_size = int(math.ceil(100e6 / recording.get_num_channels())) # size of chunks in samples
+    chunk_size = int(math.ceil(chunk_duration_sec * sampling_frequency))
+
     print(f'Chunk size: {chunk_size / recording.sampling_frequency} sec')
     chunks = get_time_chunks(recording.get_num_samples(), chunk_size=chunk_size, padding=1000)
     times_list: list[npt.NDArray[np.int64]] = []

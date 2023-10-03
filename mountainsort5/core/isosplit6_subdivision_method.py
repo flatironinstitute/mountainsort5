@@ -17,11 +17,23 @@ def isosplit6_subdivision_method(
     npca_per_subdivision: int,
     inds: Union[npt.NDArray[np.int32], None]=None # pass in inds so that we don't keep making copies of the array
 ):
+    """Isosplit6 subdivision method
+
+    Args:
+        X: L x M array where L is the number of data points and M is the number of features
+        npca_per_subdivision: number of pca components to use for each subdivision
+        inds: indices of the data points to use (optional)
+
+    Returns:
+        _type_: _description_
+    """
     if inds is not None:
         X_sub = X[inds]
     else:
         X_sub = X
     L = X_sub.shape[0]
+    if L == 0:
+        return np.zeros((0,), dtype=np.int32)
     features = compute_pca_features(X_sub, npca=npca_per_subdivision)
     labels = isosplit6(features)
     K = np.max(labels)

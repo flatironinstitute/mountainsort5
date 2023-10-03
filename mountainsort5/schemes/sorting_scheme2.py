@@ -90,8 +90,11 @@ def sorting_scheme2(
         )
     )
     times, labels = get_times_labels_from_sorting(sorting1)
-    K = np.max(labels) # number of clusters
-    labels = labels + label_offset # used in scheme 3
+    if len(labels) > 0:
+        K = np.max(labels) # number of clusters
+        labels = labels + label_offset # used in scheme 3
+    else:
+        K = 0
 
     print('Loading training traces')
     # Load the traces from the training recording

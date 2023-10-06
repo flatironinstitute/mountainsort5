@@ -12,6 +12,7 @@ from ..core.SnippetClassifier import SnippetClassifier
 from ..core.remove_duplicate_events import remove_duplicate_events
 from ..core.get_sampled_recording_for_training import get_sampled_recording_for_training
 from ..core.get_times_labels_from_sorting import get_times_labels_from_sorting
+from ..core.Timer import Timer
 
 
 def sorting_scheme2(
@@ -66,15 +67,21 @@ def sorting_scheme2(
 
     # Subsample the recording for training
     if sorting_parameters.training_duration_sec is not None:
+        print(f'Using training recording of duration {sorting_parameters.training_duration_sec} sec with the sampling mode {sorting_parameters.training_recording_sampling_mode}')
+        tt = Timer('SCHEME2 get_sampled_recording_for_training')
         training_recording = get_sampled_recording_for_training(
             recording=recording,
             training_duration_sec=sorting_parameters.training_duration_sec,
             mode=sorting_parameters.training_recording_sampling_mode
         )
+        tt.report()
     else:
+        print(f'Using the full recording for training: {recording.get_num_frames() / recording.get_sampling_frequency()} sec')
         training_recording = recording
 
     # Run the first phase of spike sorting (same as sorting_scheme1)
+    print('Running phase 1 sorting')
+    tt = Timer('SCHEME2 sorting_scheme1')
     sorting1 = sorting_scheme1(
         recording=training_recording,
         sorting_parameters=Scheme1SortingParameters(
@@ -89,15 +96,21 @@ def sorting_scheme2(
             npca_per_subdivision=sorting_parameters.phase1_npca_per_subdivision
         )
     )
+    tt.report()
+
+    # Get the times and labels from the first phase sorting
+    tt = Timer('SCHEME2 get_times_labels_from_sorting')
     times, labels = get_times_labels_from_sorting(sorting1)
     if len(labels) > 0:
         K = np.max(labels) # number of clusters
         labels = labels + label_offset # used in scheme 3
     else:
         K = 0
+    tt.report()
 
     print('Loading training traces')
     # Load the traces from the training recording
+    tt = Timer('SCHEME2 training_recording.get_traces')
     training_traces = training_recording.get_traces()
     training_snippets = extract_snippets(
         traces=training_traces,
@@ -108,9 +121,11 @@ def sorting_scheme2(
         T1=sorting_parameters.snippet_T1,
         T2=sorting_parameters.snippet_T2
     )
+    tt.report()
 
     print('Training classifier')
     # Train the classifier based on the labels obtained from the first phase sorting
+    tt = Timer('SCHEME2 training classifier step 1')
     channel_masks: Dict[int, Union[List[int], None]] = {} # by channel
     for m in range(M):
         channel_masks[m] = []
@@ -133,7 +148,11 @@ def sorting_scheme2(
             T2=sorting_parameters.snippet_T2
         )
         snippet_classifiers[m].add_training_snippets(random_snippets, label=0, offset=0)
+    tt.report()
 
+    # Add the snippets from the first phase sorting to the classifier
+    print('Adding snippets from phase 1 sorting')
+    tt = Timer('SCHEME2 adding snippets from phase 1 sorting')
     for k in range(label_offset + 1, label_offset + K + 1):
         inds0 = np.where(labels == k)[0]
         snippets0 = training_snippets[inds0]
@@ -166,9 +185,12 @@ def sorting_scheme2(
                 offset=offset
             )
     training_snippets = None # Free up memory
+
     print('Fitting models')
+    tt = Timer('SCHEME2 fitting models')
     for m in range(M):
         snippet_classifiers[m].fit()
+    tt.report()
 
     # Now that we have the classifier, we can do the full sorting
     # Iterate over time chunks, detect and classify all spikes, and collect the results
@@ -181,8 +203,12 @@ def sorting_scheme2(
     for i, chunk in enumerate(chunks):
         print(f'Time chunk {i + 1} of {len(chunks)}')
         print('Loading traces')
+        tt = Timer('SCHEME2 loading traces')
         traces_chunk = recording.get_traces(start_frame=chunk.start - chunk.padding_left, end_frame=chunk.end + chunk.padding_right)
+        tt.report()
+
         print('Detecting spikes')
+        tt = Timer('SCHEME2 detecting spikes')
         time_radius = int(math.ceil(sorting_parameters.detect_time_radius_msec / 1000 * sampling_frequency))
         times_chunk, channel_indices_chunk = detect_spikes(
             traces=traces_chunk,
@@ -195,8 +221,10 @@ def sorting_scheme2(
             margin_right=sorting_parameters.snippet_T2,
             verbose=False
         )
+        tt.report()
 
         print('Extracting and classifying snippets')
+        tt = Timer('SCHEME2 extracting and classifying snippets')
         labels_chunk = np.zeros(len(times_chunk), dtype='int32')
         labels_reference_chunk = np.zeros(len(times_chunk), dtype='int32') if reference_snippet_classifiers is not None else None
         for m in range(M):
@@ -217,6 +245,10 @@ def sorting_scheme2(
                     labels_reference_chunk_m, _ = reference_snippet_classifiers[m].classify_snippets(snippets2)
                     if labels_reference_chunk_m is not None:
                         labels_reference_chunk[inds] = labels_reference_chunk_m
+        tt.report()
+
+        print('Updating events')
+        tt = Timer('SCHEME2 updating events')
 
         # remove events with label 0
         valid_inds = np.where(labels_chunk > 0)[0]
@@ -249,12 +281,19 @@ def sorting_scheme2(
         labels_list.append(labels_chunk)
         if reference_snippet_classifiers is not None:
             labels_reference_list.append(labels_reference_chunk)
+        
+        tt.report()
 
     # Now concatenate the results
+    print('Concatenating results')
+    tt = Timer('SCHEME2 concatenating results')
     times_concat: npt.NDArray[np.int64] = np.concatenate(times_list)
     labels_concat: npt.NDArray[np.int32] = np.concatenate(labels_list)
     labels_reference_concat = np.concatenate(labels_reference_list) if reference_snippet_classifiers is not None else None
+    tt.report()
 
+    print('Perorming label mapping')
+    tt = Timer('SCHEME2 label mapping')
     if reference_snippet_classifiers is not None:
         mapping = get_labels_to_reference_labels_mapping(labels_concat, labels_reference_concat, label_offset=label_offset)
         print('==== mapping =======================')
@@ -265,9 +304,13 @@ def sorting_scheme2(
             snippet_classifiers[m].apply_label_mapping(mapping)
         for k1, k2 in mapping.items():
             labels_concat[labels_concat == k1] = k2
+    tt.report()
 
     # Now create a new sorting object from the times and labels results
+    print('Creating sorting object')
+    tt = Timer('SCHEME2 creating sorting object')
     sorting2 = si.NumpySorting.from_times_labels([times_concat], [labels_concat], sampling_frequency=recording.sampling_frequency)
+    tt.report()
 
     if return_snippet_classifiers:
         return sorting2, snippet_classifiers

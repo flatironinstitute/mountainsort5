@@ -8,6 +8,7 @@ from ..core.extract_snippets import extract_snippets
 from ..core.isosplit6_subdivision_method import isosplit6_subdivision_method
 from ..core.compute_templates import compute_templates
 from ..core.compute_pca_features import compute_pca_features
+from ..core.Timer import Timer
 
 
 def sorting_scheme1(
@@ -50,9 +51,12 @@ def sorting_scheme1(
     sorting_parameters.check_valid(M=M, N=N, sampling_frequency=sampling_frequency, channel_locations=channel_locations)
     
     print('Loading traces')
+    tt = Timer('load_traces')
     traces = recording.get_traces()
+    tt.report()
 
     print('Detecting spikes')
+    tt = Timer('detect_spikes')
     time_radius = int(math.ceil(sorting_parameters.detect_time_radius_msec / 1000 * sampling_frequency))
     times, channel_indices = detect_spikes(
         traces=traces,
@@ -65,11 +69,16 @@ def sorting_scheme1(
         margin_right=sorting_parameters.snippet_T2,
         verbose=True
     )
+    tt.report()
 
+    print('Removing duplicate times')
+    tt = Timer('remove_duplicate_times')
     # this is important because isosplit does not do well with duplicate points
     times, channel_indices = remove_duplicate_times(times, channel_indices)
+    tt.report()
 
     print(f'Extracting {len(times)} snippets')
+    tt = Timer('extract_snippets')
     snippets = extract_snippets( # L x T x M
         traces=traces,
         channel_locations=channel_locations,
@@ -79,12 +88,20 @@ def sorting_scheme1(
         T1=sorting_parameters.snippet_T1,
         T2=sorting_parameters.snippet_T2
     )
+    tt.report()
     L = snippets.shape[0]
     T = snippets.shape[1]
     assert snippets.shape[2] == M
 
-    print('Clustering snippets')
-    features = compute_pca_features(snippets.reshape((L, T * M)), npca=sorting_parameters.npca_per_channel * M)
+
+    npca = sorting_parameters.npca_per_channel * M
+    print(f'Computing PCA features with npca={npca}')
+    tt = Timer('compute_pca_features')
+    features = compute_pca_features(snippets.reshape((L, T * M)), npca=npca)
+    tt.report()
+
+    print(f'Isosplit6 clustering with npca_per_subdivision={sorting_parameters.npca_per_subdivision}')
+    tt = Timer('isosplit6_subdivision_method')
     labels = isosplit6_subdivision_method(
         X=features,
         npca_per_subdivision=sorting_parameters.npca_per_subdivision
@@ -93,22 +110,36 @@ def sorting_scheme1(
         K = int(np.max(labels))
     else:
         K = 0
-    print(f'Found {K} clusters')
+    tt.report()
 
     print('Computing templates')
+    tt = Timer('compute_templates')
     templates = compute_templates(snippets=snippets, labels=labels) # K x T x M
     peak_channel_indices = [np.argmin(np.min(templates[i], axis=0)) for i in range(K)]
+    tt.report()
 
     print('Determining optimal alignment of templates')
+    tt = Timer('align_templates')
     offsets = align_templates(templates)
+    tt.report()
 
     print('Aligning snippets')
+    tt = Timer('align_snippets')
     snippets = align_snippets(snippets, offsets, labels)
     # this is tricky - we need to subtract the offset to correspond to shifting the template
     times = offset_times(times, -offsets, labels)
+    tt.report()
 
     print('Clustering aligned snippets')
-    features = compute_pca_features(snippets.reshape((L, T * M)), npca=sorting_parameters.npca_per_channel * M)
+    npca = sorting_parameters.npca_per_channel * M
+
+    print(f'Computing PCA features with npca={npca}')
+    tt = Timer('compute_pca_features')
+    features = compute_pca_features(snippets.reshape((L, T * M)), npca=npca)
+    tt.report()
+
+    print(f'Isosplit6 clustering with npca_per_subdivision={sorting_parameters.npca_per_subdivision}')
+    tt = Timer('isosplit6_subdivision_method')
     labels = isosplit6_subdivision_method(
         X=features,
         npca_per_subdivision=sorting_parameters.npca_per_subdivision
@@ -117,32 +148,44 @@ def sorting_scheme1(
         K = int(np.max(labels))
     else:
         K = 0
+    tt.report()
     print(f'Found {K} clusters')
 
     print('Computing templates')
+    tt = Timer('compute_templates')
     templates = compute_templates(snippets=snippets, labels=labels) # K x T x M
     peak_channel_indices = [np.argmin(np.min(templates[i], axis=0)) for i in range(K)]
+    tt.report()
 
     print('Offsetting times to peak')
+    tt = Timer('determine_offsets_to_peak')
     # Now we need to offset the times again so that the spike times correspond to actual peaks
     offsets_to_peak = determine_offsets_to_peak(templates, detect_sign=sorting_parameters.detect_sign, T1=sorting_parameters.snippet_T1)
     print('Offsets to peak:', offsets_to_peak)
     # This time we need to add the offset
     times = offset_times(times, offsets_to_peak, labels)
+    tt.report()
 
     # Now we need to make sure the times are in order, because we have offset them
+    print('Sorting times')
+    tt = Timer('sorting times')
     sort_inds = np.argsort(times)
     times = times[sort_inds]
     labels = labels[sort_inds]
+    tt.report()
 
     # also make sure none of the times are out of bounds now that we have offset them a couple times
+    print('Removing out of bounds times')
+    tt = Timer('removing out of bounds times')
     inds_okay = np.where((times >= sorting_parameters.snippet_T1) & (times < N - sorting_parameters.snippet_T2))[0]
     times = times[inds_okay]
     labels = labels[inds_okay]
+    tt.report()
 
     print('Reordering units')
     # relabel so that units are ordered by channel
     # and we also put any labels that are not used at the end
+    tt = Timer('reordering units')
     aa = peak_channel_indices
     for k in range(1, K + 1):
         inds = np.where(labels == k)[0]
@@ -150,8 +193,12 @@ def sorting_scheme1(
             aa[k - 1] = np.Inf
     new_labels_mapping = np.argsort(np.argsort(aa)) + 1 # too tricky! my head aches right now
     labels = new_labels_mapping[labels - 1]
+    tt.report()
     
+    print('Creating sorting object')
+    tt = Timer('creating sorting object')
     sorting = si.NumpySorting.from_times_labels(times_list=[times], labels_list=[labels], sampling_frequency=sampling_frequency)
+    tt.report()
 
     return sorting
 

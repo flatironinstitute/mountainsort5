@@ -187,7 +187,11 @@ def test_get_times_labels_from_sorting():
     assert len(np.unique(labels)) == sorting.get_num_units()
 
     # test the case of an empty sorting
-    sorting2 = se.NumpySorting(sampling_frequency=30000)
+    try:
+        # depending on the version of spikeinterface we do one or the other method
+        sorting2 = se.NumpySorting(sampling_frequency=30000, spikes=np.array([]), unit_ids=np.array([]))
+    except:
+        sorting2 = se.NumpySorting(sampling_frequency=30000)
     times2, labels2 = get_times_labels_from_sorting(sorting2)
     assert len(times2) == 0
     assert len(labels2) == 0

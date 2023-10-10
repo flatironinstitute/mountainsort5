@@ -21,7 +21,7 @@ def sorting_scheme2(
     return_snippet_classifiers: bool = False, # used in scheme 3
     reference_snippet_classifiers: Union[Dict[int, SnippetClassifier], None] = None, # used in scheme 3
     label_offset: int = 0, # used in scheme 3
-    chunk_duration_sec: Union[float, None] = 10.0 
+    chunk_duration_sec: float = 10.0 
 ) -> Union[si.BaseSorting, Tuple[si.BaseSorting, Dict[int, SnippetClassifier]]]:
     """MountainSort 5 sorting scheme 2
 

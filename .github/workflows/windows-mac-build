@@ -29,4 +29,4 @@ jobs:
     - name: Install packages needed for tests
       run: pip install pytest pytest-cov
     - name: Run tests
-      run: pytest
+      run: pytest -- cov mountainsort5 --cov-report=xml --cov-report=term tests/

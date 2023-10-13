@@ -1,0 +1,32 @@
+name: Build and Install on Mac and Windows
+
+on:
+  schedule:
+    - cron: "0 12 * * 0" # weekly
+
+jobs:
+  build:
+    name: Build & Test on ${{ matrix.os }} OS
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash -el {0}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ["ubuntu-latest", "macos-latest", "windows-latest"]
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v4
+      with:
+          python-version: '3.10'
+    - name: Install mountainsort
+      run: pip install -e .
+    - name: Install Packages needed by spikeinterface
+      run: pip install h5py pandas networkx
+    - name: Install packages needed for tests
+      run: pip install pytest pytest-cov
+    - name: Run tests
+      run: pytest

@@ -14,7 +14,7 @@ def test_scheme2():
         sampling_frequency=30000,
         num_segments=2,
         seed=0
-    )
+    ) # type: ignore
     recording: si.BaseRecording = recording
     sorting_true: si.BaseSorting = sorting_true
 
@@ -72,7 +72,7 @@ def test_scheme2_single_segment():
         sampling_frequency=30000,
         num_segments=1,
         seed=0
-    )
+    ) # type: ignore
     recording: si.BaseRecording = recording
     sorting_true: si.BaseSorting = sorting_true
 

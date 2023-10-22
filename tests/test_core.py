@@ -86,7 +86,7 @@ def test_extract_snippets_in_channel_neighborhood():
     assert snippets.shape == (L, T, len(neighborhood))
 
 def test_get_sampled_recording_for_training():
-    recording, _ = se.toy_example(duration=60, num_channels=4, num_units=10, sampling_frequency=30000, seed=0, num_segments=1)
+    recording, _ = se.toy_example(duration=60, num_channels=4, num_units=10, sampling_frequency=30000, seed=0, num_segments=1) # type: ignore
     recording: si.BaseRecording = recording
 
     # test case where the training duration is longer than the recording duration
@@ -147,7 +147,7 @@ def test_get_sampled_recording_for_training():
     )
 
 def test_get_block_recording_for_scheme3():
-    recording, _ = se.toy_example(duration=60, num_channels=4, num_units=10, sampling_frequency=30000, seed=0, num_segments=1)
+    recording, _ = se.toy_example(duration=60, num_channels=4, num_units=10, sampling_frequency=30000, seed=0, num_segments=1) # type: ignore
     recording: si.BaseRecording = recording
 
     recording2 = get_block_recording_for_scheme3(
@@ -178,7 +178,7 @@ def test_subdivision_cluster():
     assert len(labels) == L
 
 def test_get_times_labels_from_sorting():
-    recording, sorting = se.toy_example(duration=6, num_channels=4, num_units=10, sampling_frequency=30000, seed=0, num_segments=1)
+    recording, sorting = se.toy_example(duration=6, num_channels=4, num_units=10, sampling_frequency=30000, seed=0, num_segments=1) # type: ignore
     recording: si.BaseRecording = recording
     sorting: si.BaseSorting = sorting
 
@@ -189,7 +189,7 @@ def test_get_times_labels_from_sorting():
     # test the case of an empty sorting
     try:
         # depending on the version of spikeinterface we do one or the other method
-        sorting2 = se.NumpySorting(sampling_frequency=30000, spikes=np.array([]), unit_ids=np.array([]))
+        sorting2 = se.NumpySorting(sampling_frequency=30000, spikes=np.array([]), unit_ids=np.array([])) # type: ignore
     except:
         sorting2 = se.NumpySorting(sampling_frequency=30000) # type: ignore
     times2, labels2 = get_times_labels_from_sorting(sorting2)

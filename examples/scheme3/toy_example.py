@@ -17,7 +17,7 @@ def main():
         sampling_frequency=30000,
         num_segments=1,
         seed=0
-    )
+    ) # type: ignore
     recording: si.BaseRecording = recording
     sorting_true: si.BaseSorting = sorting_true
 

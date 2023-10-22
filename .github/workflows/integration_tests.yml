@@ -13,7 +13,7 @@ jobs:
     - name: Install packages needed by spikeinterface
       run: pip install h5py pandas networkx
     - name: Install packages needed for tests
-      run: pip install pytest pytest-cov pyright black
+      run: pip install pytest pytest-cov pyright black spikeforest
     - name: Run tests and collect coverage
       run: pyright && pytest --cov mountainsort5 --cov-report=xml --cov-report=term tests/
     - uses: codecov/codecov-action@v3

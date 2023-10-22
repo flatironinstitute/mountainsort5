@@ -15,6 +15,8 @@ def test_scheme2():
         num_segments=2,
         seed=0
     )
+    recording: si.BaseRecording = recording
+    sorting_true: si.BaseSorting = sorting_true
 
     # lazy preprocessing
     recording_filtered = spre.bandpass_filter(recording, freq_min=300, freq_max=6000)
@@ -71,6 +73,8 @@ def test_scheme2_single_segment():
         num_segments=1,
         seed=0
     )
+    recording: si.BaseRecording = recording
+    sorting_true: si.BaseSorting = sorting_true
 
     sorting1 = ms5.sorting_scheme2(
         recording,

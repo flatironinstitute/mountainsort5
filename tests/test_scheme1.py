@@ -15,6 +15,8 @@ def test_scheme1():
         num_segments=2,
         seed=0
     )
+    recording: si.BaseRecording = recording
+    sorting_true: si.BaseSorting = sorting_true
 
     timer = time.time()
 

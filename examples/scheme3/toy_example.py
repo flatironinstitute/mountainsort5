@@ -18,6 +18,8 @@ def main():
         num_segments=1,
         seed=0
     )
+    recording: si.BaseRecording = recording
+    sorting_true: si.BaseSorting = sorting_true
 
     timer = time.time()
 

@@ -36,7 +36,7 @@ def generate_visualization_output(*, rec: SFRecording, recording_preprocessed: s
         units_dict[str(unit_id)] = sorting.get_unit_spike_train(unit_id, segment_index=0).astype(np.int32)
     try:
         # depends on version of SI
-        sorting_with_true = si.NumpySorting.from_unit_dict([units_dict], sampling_frequency=sorting.sampling_frequency)
+        sorting_with_true = si.NumpySorting.from_unit_dict([units_dict], sampling_frequency=sorting.sampling_frequency) # type: ignore
     except:
         sorting_with_true = si.NumpySorting.from_dict([units_dict], sampling_frequency=sorting.sampling_frequency) # type: ignore
 

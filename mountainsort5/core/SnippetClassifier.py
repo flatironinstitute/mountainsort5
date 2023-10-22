@@ -36,6 +36,7 @@ class SnippetClassifier:
             raise Exception('self.pca_model is None, which probably means that fit() was not called.') # pragma: no cover
         Y = self.pca_model.transform(snippets.reshape(snippets.shape[0], self.T * self.M))
         nearest_inds = self.nearest_neighbor_model.kneighbors(Y, n_neighbors=2, return_distance=False)
+        assert isinstance(nearest_inds, np.ndarray)
         inds = nearest_inds[:, 1] # don't use the first because that could be an identical match
         return self.all_training_labels[inds], self.all_training_offsets[inds]
     def apply_label_mapping(self, mapping: Dict[int, int]):

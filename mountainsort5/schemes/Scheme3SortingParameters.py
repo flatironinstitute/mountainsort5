@@ -14,7 +14,7 @@ class Scheme3SortingParameters:
     block_sorting_parameters: Scheme2SortingParameters
     block_duration_sec: float
 
-    def check_valid(self, *, M: int, N: int, sampling_frequency: float, channel_locations: Union[np.ndarray, None]=None):
+    def check_valid(self, *, M: int, N: int, sampling_frequency: float, channel_locations: np.ndarray):
         """Internal function for checking validity of parameters"""
         self.block_sorting_parameters.check_valid(M=M, N=N, sampling_frequency=sampling_frequency, channel_locations=channel_locations)
         assert self.block_duration_sec > 0

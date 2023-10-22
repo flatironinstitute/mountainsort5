@@ -23,7 +23,7 @@ def test_scheme2():
     # sorting
     print('Starting MountainSort5 (sorting1)')
     timer = time.time()
-    sorting1, classifer1 = ms5.sorting_scheme2(
+    result = ms5.sorting_scheme2(
         recording_preprocessed,
         sorting_parameters=ms5.Scheme2SortingParameters(
             phase1_detect_channel_radius=150,
@@ -34,6 +34,9 @@ def test_scheme2():
         ),
         return_snippet_classifiers=True # for coverage
     )
+    assert isinstance(result, tuple)
+    sorting1, classifer1 = result
+    
     elapsed_sec = time.time() - timer
     duration_sec = recording.get_total_duration()
     print(f'Elapsed time for sorting: {elapsed_sec:.2f} sec -- x{(duration_sec / elapsed_sec):.2f} speed compared with real time for {recording.get_num_channels()} channels')

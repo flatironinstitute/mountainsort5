@@ -14,7 +14,7 @@ import sortingview.views as vv
 from mountainsort5.core.extract_snippets import extract_snippets
 from helpers.create_autocorrelograms_view import create_autocorrelograms_view
 from helpers.compute_correlogram_data import compute_correlogram_data
-from spikeforest.load_spikeforest_recordings import SFRecording
+from spikeforest.load_spikeforest_recordings.SFRecording import SFRecording
 
 
 def generate_visualization_output(*, rec: SFRecording, recording_preprocessed: si.BaseRecording, sorting: si.BaseSorting, sorting_true: si.BaseSorting):
@@ -34,11 +34,14 @@ def generate_visualization_output(*, rec: SFRecording, recording_preprocessed: s
     units_dict['true'] = sorting_true.get_unit_spike_train(sorting_true.unit_ids[0], segment_index=0).astype(np.int32)
     for unit_id in sorting.unit_ids:
         units_dict[str(unit_id)] = sorting.get_unit_spike_train(unit_id, segment_index=0).astype(np.int32)
-    sorting_with_true = si.NumpySorting.from_dict([units_dict], sampling_frequency=sorting.sampling_frequency)
+    try:
+        # depends on version of SI
+        sorting_with_true = si.NumpySorting.from_unit_dict([units_dict], sampling_frequency=sorting.sampling_frequency)
+    except:
+        sorting_with_true = si.NumpySorting.from_dict([units_dict], sampling_frequency=sorting.sampling_frequency) # type: ignore
 
     print('Loading traces')
-    recording_preprocessed
-    traces = recording_preprocessed.get_traces()
+    traces: np.ndarray = recording_preprocessed.get_traces()
     channel_locations = recording_preprocessed.get_channel_locations()
     
     unit_ids = sorting_with_true.unit_ids
@@ -52,7 +55,7 @@ def generate_visualization_output(*, rec: SFRecording, recording_preprocessed: s
     templates = np.zeros((K, T, M), dtype=np.float32)
     for i in range(K):
         unit_id = unit_ids[i]
-        times1 = sorting_with_true.get_unit_spike_train(unit_id, segment_index=0)
+        times1: np.ndarray = sorting_with_true.get_unit_spike_train(unit_id, segment_index=0)
         snippets1 = extract_snippets(traces, channel_locations=None, mask_radius=None, times=times1, channel_indices=None, T1=T1, T2=T2)
         templates[i] = np.median(snippets1, axis=0)
     peak_channels = {

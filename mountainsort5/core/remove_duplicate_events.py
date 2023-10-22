@@ -20,7 +20,7 @@ def find_duplicate_times(times: npt.NDArray[np.int32], *, tol: int) -> npt.NDArr
         if not deleted[i1]:
             i2 = i1 + 1
             while i2 < len(times) and times[i2] <= times[i1] + tol:
-                ret.append(i2)
+                ret.append(np.int32(i2))
                 deleted[i2] = True
                 i2 += 1
     return np.array(ret, dtype=np.int32)

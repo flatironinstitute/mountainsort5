@@ -41,14 +41,16 @@ def sorting_scheme2(
     # Handle multi-segment recordings
     if recording.get_num_segments() > 1:
         print('Recording has multiple segments. Joining segments for sorting...')
-        recording_joined = si.concatenate_recordings(recording_list=[recording])
-        sorting_joined, snippet_classifiers = sorting_scheme2(
+        recording_joined: si.BaseRecording = si.concatenate_recordings(recording_list=[recording])
+        result = sorting_scheme2(
             recording_joined,
             sorting_parameters=sorting_parameters,
             return_snippet_classifiers=True,
             reference_snippet_classifiers=reference_snippet_classifiers,
             label_offset=label_offset
         )
+        assert isinstance(result, tuple)
+        sorting_joined, snippet_classifiers = result
         print('Splitting sorting into segments to match original multisegment recording...')
         sorting = si.split_sorting(sorting_joined, recording_joined)
         if return_snippet_classifiers:
@@ -101,6 +103,8 @@ def sorting_scheme2(
     # Get the times and labels from the first phase sorting
     tt = Timer('SCHEME2 get_times_labels_from_sorting')
     times, labels = get_times_labels_from_sorting(sorting1)
+    times: np.ndarray = times
+    labels: np.ndarray = labels
     if len(labels) > 0:
         K = np.max(labels) # number of clusters
         labels = labels + label_offset # used in scheme 3
@@ -111,7 +115,7 @@ def sorting_scheme2(
     print('Loading training traces')
     # Load the traces from the training recording
     tt = Timer('SCHEME2 training_recording.get_traces')
-    training_traces = training_recording.get_traces()
+    training_traces: np.ndarray = training_recording.get_traces()
     training_snippets = extract_snippets(
         traces=training_traces,
         channel_locations=None,
@@ -128,13 +132,15 @@ def sorting_scheme2(
     tt = Timer('SCHEME2 training classifier step 1')
     channel_masks: Dict[int, Union[List[int], None]] = {} # by channel
     for m in range(M):
-        channel_masks[m] = []
-        for m2 in range(M):
-            if sorting_parameters.snippet_mask_radius is not None:
+        if sorting_parameters.snippet_mask_radius is not None:
+            x: List[int] = []
+            channel_masks[m] = []
+            for m2 in range(M):
                 if np.linalg.norm(channel_locations[m] - channel_locations[m2]) <= sorting_parameters.snippet_mask_radius:
-                    channel_masks[m].append(m2)
-            else:
-                channel_masks[m] = None
+                    x.append(m2)
+            channel_masks[m] = x
+        else:
+            channel_masks[m] = None
     snippet_classifiers: Dict[int, SnippetClassifier] = {} # by channel
     for m in range(M):
         snippet_classifiers[m] = SnippetClassifier(npca=sorting_parameters.classifier_npca)
@@ -196,7 +202,7 @@ def sorting_scheme2(
     # Iterate over time chunks, detect and classify all spikes, and collect the results
     chunk_size = int(math.ceil(100e6 / recording.get_num_channels())) # size of chunks in samples
     print(f'Chunk size: {chunk_size / recording.sampling_frequency} sec')
-    chunks = get_time_chunks(recording.get_num_samples(), chunk_size=chunk_size, padding=1000)
+    chunks = get_time_chunks(np.int64(recording.get_num_samples()), chunk_size=np.int32(chunk_size), padding=np.int32(1000))
     times_list: list[npt.NDArray[np.int64]] = []
     labels_list: list[npt.NDArray[np.int32]] = []
     labels_reference_list = [] if reference_snippet_classifiers is not None else None
@@ -204,7 +210,7 @@ def sorting_scheme2(
         print(f'Time chunk {i + 1} of {len(chunks)}')
         print('Loading traces')
         tt = Timer('SCHEME2 loading traces')
-        traces_chunk = recording.get_traces(start_frame=chunk.start - chunk.padding_left, end_frame=chunk.end + chunk.padding_right)
+        traces_chunk: np.ndarray = recording.get_traces(start_frame=int(chunk.start - chunk.padding_left), end_frame=int(chunk.end + chunk.padding_right))
         tt.report()
 
         print('Detecting spikes')
@@ -238,10 +244,11 @@ def sorting_scheme2(
                     T2=sorting_parameters.snippet_T2
                 )
                 labels_chunk_m, offsets_chunk_m = snippet_classifiers[m].classify_snippets(snippets2)
-                if labels_chunk_m is not None:
+                if labels_chunk_m is not None and offsets_chunk_m is not None:
                     labels_chunk[inds] = labels_chunk_m
                     times_chunk[inds] = times_chunk[inds] - offsets_chunk_m
                 if reference_snippet_classifiers is not None:
+                    assert labels_reference_chunk is not None
                     labels_reference_chunk_m, _ = reference_snippet_classifiers[m].classify_snippets(snippets2)
                     if labels_reference_chunk_m is not None:
                         labels_reference_chunk[inds] = labels_reference_chunk_m
@@ -254,13 +261,13 @@ def sorting_scheme2(
         valid_inds = np.where(labels_chunk > 0)[0]
         times_chunk: npt.NDArray[np.int32] = times_chunk[valid_inds]
         labels_chunk: npt.NDArray[np.int32] = labels_chunk[valid_inds]
-        labels_reference_chunk = labels_reference_chunk[valid_inds] if reference_snippet_classifiers is not None else None
+        labels_reference_chunk = labels_reference_chunk[valid_inds] if labels_reference_chunk is not None else None
 
         # now that we offset them we need to re-sort
         sort_inds2 = np.argsort(times_chunk)
         times_chunk: npt.NDArray[np.int32] = times_chunk[sort_inds2]
         labels_chunk: npt.NDArray[np.int32] = labels_chunk[sort_inds2]
-        labels_reference_chunk = labels_reference_chunk[sort_inds2] if reference_snippet_classifiers is not None else None
+        labels_reference_chunk = labels_reference_chunk[sort_inds2] if labels_reference_chunk is not None else None
 
         print('Removing duplicates')
         new_inds = remove_duplicate_events(times_chunk, labels_chunk, tol=time_radius)
@@ -280,6 +287,7 @@ def sorting_scheme2(
         )
         labels_list.append(labels_chunk)
         if reference_snippet_classifiers is not None:
+            assert labels_reference_list is not None
             labels_reference_list.append(labels_reference_chunk)
         
         tt.report()
@@ -289,12 +297,13 @@ def sorting_scheme2(
     tt = Timer('SCHEME2 concatenating results')
     times_concat: npt.NDArray[np.int64] = np.concatenate(times_list)
     labels_concat: npt.NDArray[np.int32] = np.concatenate(labels_list)
-    labels_reference_concat = np.concatenate(labels_reference_list) if reference_snippet_classifiers is not None else None
+    labels_reference_concat = np.concatenate(labels_reference_list) if labels_reference_list is not None else None
     tt.report()
 
     print('Perorming label mapping')
     tt = Timer('SCHEME2 label mapping')
     if reference_snippet_classifiers is not None:
+        assert labels_reference_concat is not None
         mapping = get_labels_to_reference_labels_mapping(labels_concat, labels_reference_concat, label_offset=label_offset)
         print('==== mapping =======================')
         for k1, k2 in mapping.items():
@@ -321,8 +330,8 @@ def sorting_scheme2(
 # 1. For each unit, find the matching unit in the reference (has to be a MUTUAL >0.5 overlap)
 # 2. If the matching unit is found, then map the unit to the matching unit
 # 3. If the matching unit is not found, then map it to the smallest unused label starting with label_offset+1
-def get_labels_to_reference_labels_mapping(labels: npt.NDArray[np.int32], labels_reference: npt.NDArray[np.int32], *, label_offset) -> Dict[int, int]:
-    mapping: Dict[int, int] = {}
+def get_labels_to_reference_labels_mapping(labels: npt.NDArray[np.int32], labels_reference: npt.NDArray[np.int32], *, label_offset: int) -> Dict[int, int]:
+    mapping: Dict[int, Union[int, None]] = {}
     unique_labels = np.sort(np.unique(labels))
     last_used_k = label_offset
     for k in unique_labels:
@@ -338,8 +347,14 @@ def get_labels_to_reference_labels_mapping(labels: npt.NDArray[np.int32], labels
                     break
         if mapping[k] is None: # if not mapped to reference label, then create a new label
             mapping[k] = last_used_k + 1
-            last_used_k = mapping[k]
-    return mapping
+            last_used_k = last_used_k + 1
+
+    # do this for typing reasons
+    mapping2: Dict[int, int] = {}
+    for k, k2 in mapping.items():
+        assert k2 is not None
+        mapping2[k] = k2
+    return mapping2
 
 class TimeChunk:
     def __init__(self, start: np.int64, end: np.int64, padding_left: np.int32, padding_right: np.int32):
@@ -364,8 +379,8 @@ def get_time_chunks(num_samples: np.int64, chunk_size: np.int32, padding: np.int
         end = np.int64(start) + np.int64(chunk_size)
         if end > num_samples:
             end = num_samples
-        padding_left = min(padding, start)
-        padding_right = min(padding, num_samples - end)
+        padding_left = np.minimum(padding, start)
+        padding_right = np.minimum(padding, num_samples - end)
         chunks.append(TimeChunk(start=start, end=end, padding_left=padding_left, padding_right=padding_right))
         start = end
     return chunks

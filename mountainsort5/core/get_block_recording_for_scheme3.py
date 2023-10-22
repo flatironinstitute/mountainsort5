@@ -19,7 +19,7 @@ class BlockRecording(si.BaseRecording):
         dtype = recording.get_dtype()
         channel_ids = recording.get_channel_ids()
         
-        si.BaseRecording.__init__(self, sampling_frequency, channel_ids, dtype)
+        si.BaseRecording.__init__(self, sampling_frequency, [ch for ch in channel_ids], dtype)
 
         self.start_frame = start_frame
         self.end_frame = end_frame

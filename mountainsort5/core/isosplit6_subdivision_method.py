@@ -3,6 +3,7 @@ import numpy as np
 import numpy.typing as npt
 import warnings
 from scipy.cluster.hierarchy import ClusterWarning
+from scipy.spatial.distance import squareform
 from isosplit6 import isosplit6
 from .compute_pca_features import compute_pca_features
 
@@ -47,6 +48,12 @@ def isosplit6_subdivision_method(
         centroids[k - 1] = np.median(X_sub[labels == k], axis=0)
     X_sub = None # free up memory
     dists_between_centroids = np.sqrt(np.sum((centroids[:, None, :] - centroids[None, :, :]) ** 2, axis=2))
+
+    # Before I added the following line I was getting warnings: "The symmetric non-negative hollow observation matrix looks suspiciously like an uncondensed distance matrix"
+    # so I think this is needed
+    # because linkage function expects "y is a 1-D condensed distance matrix,"
+    dists_between_centroids = squareform(dists_between_centroids)
+
     # hierarchical clustering
     from scipy.cluster.hierarchy import linkage, cut_tree
     Z = linkage(dists_between_centroids, method='single', metric='euclidean')

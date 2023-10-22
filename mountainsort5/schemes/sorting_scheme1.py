@@ -52,7 +52,7 @@ def sorting_scheme1(
     
     print('Loading traces')
     tt = Timer('load_traces')
-    traces = recording.get_traces()
+    traces: np.ndarray = recording.get_traces()
     tt.report()
 
     print('Detecting spikes')
@@ -186,7 +186,7 @@ def sorting_scheme1(
     # relabel so that units are ordered by channel
     # and we also put any labels that are not used at the end
     tt = Timer('reordering units')
-    aa = peak_channel_indices
+    aa = [float(x) for x in peak_channel_indices]
     for k in range(1, K + 1):
         inds = np.where(labels == k)[0]
         if len(inds) == 0:

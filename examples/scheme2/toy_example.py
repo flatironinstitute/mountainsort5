@@ -28,6 +28,7 @@ def main():
             training_duration_sec=60
         )
     )
+    assert isinstance(sorting, si.BaseSorting)
     
     elapsed_sec = time.time() - timer
     duration_sec = recording.get_total_duration()

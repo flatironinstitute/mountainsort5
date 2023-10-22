@@ -43,7 +43,7 @@ def sorting_scheme3(
     sorting_parameters.check_valid(M=M, N=N, sampling_frequency=sampling_frequency, channel_locations=channel_locations)
 
     block_size = int(sorting_parameters.block_duration_sec * sampling_frequency) # size of chunks in samples
-    blocks = get_time_chunks(recording.get_num_samples(), chunk_size=block_size, padding=1000)
+    blocks = get_time_chunks(np.int64(recording.get_num_samples()), chunk_size=np.int32(block_size), padding=np.int32(1000))
 
     times_list: list[npt.NDArray[np.int64]] = []
     labels_list: list[npt.NDArray[np.int32]] = []
@@ -53,22 +53,24 @@ def sorting_scheme3(
         print('')
         print('=============================================')
         print(f'Processing block {i + 1} of {len(blocks)}...')
-        subrecording = get_block_recording_for_scheme3(recording=recording, start_frame=chunk.start - chunk.padding_left, end_frame=chunk.end + chunk.padding_right)
-        subsorting, snippet_classifiers = sorting_scheme2(
+        subrecording = get_block_recording_for_scheme3(recording=recording, start_frame=int(chunk.start) - int(chunk.padding_left), end_frame=int(chunk.end) + int(chunk.padding_right))
+        result = sorting_scheme2(
             subrecording,
             sorting_parameters=sorting_parameters.block_sorting_parameters,
             return_snippet_classifiers=True,
             reference_snippet_classifiers=previous_snippet_classifiers,
             label_offset=last_label_used
         )
+        assert isinstance(result, tuple)
+        subsorting, snippet_classifiers = result
         previous_snippet_classifiers = snippet_classifiers
         times0, labels0 = get_times_labels_from_sorting(subsorting)
         valid_inds = np.where((times0 >= chunk.padding_left) & (times0 < chunk.padding_left + (chunk.end - chunk.start)))[0]
-        times0: npt.NDArray[np.int32] = times0[valid_inds]
+        times0: npt.NDArray[np.int64] = times0[valid_inds]
         labels0: npt.NDArray[np.int32] = labels0[valid_inds]
         times0 = times0.astype(np.int64) + chunk.start - np.int64(chunk.padding_left)
         if len(labels0) > 0:
-            last_label_used = max(last_label_used, np.max(labels0))
+            last_label_used = max(last_label_used, np.max(labels0.astype(int)))
         times_list.append(times0)
         labels_list.append(labels0)
     

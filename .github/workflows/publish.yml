@@ -15,11 +15,11 @@ jobs:
     - name: Install packages needed by spikeinterface
       run: pip install h5py pandas networkx
     - name: Install packages needed for tests
-      run: pip install pytest pytest-cov black pyright
+      run: pip install pytest pytest-cov black pyright spikeforest
     - name: Run tests
-      run: pytest tests/
+      run: pyright && pytest tests/
     - name: Build
-      run: pyright && python3 -m pip install --upgrade build && python3 -m build
+      run: python3 -m pip install --upgrade build && python3 -m build
     - name: Publish package
       uses: pypa/gh-action-pypi-publish@release/v1
       with:

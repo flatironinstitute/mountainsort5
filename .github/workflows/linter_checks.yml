@@ -1,0 +1,22 @@
+name: linter-checks
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Linter checks
+    steps:
+    - uses: actions/checkout@v1
+    - name: Install
+      run: pip install -e .
+    - name: Install packages needed for tests
+      # pyright 1.1.336 produces annoying errors
+      run: pip install pyright==1.1.335 flake8 spikeforest figurl sortingview
+    - name: Run flake8
+      run: flake8 --config .flake8
+    - name: Run pyright
+      run: pyright

@@ -25,4 +25,3 @@ def compute_templates(snippets: npt.NDArray[np.float32], labels: npt.NDArray[np.
         snippets1 = snippets[labels == k]
         templates[k - 1] = np.median(snippets1, axis=0)
     return templates
-        

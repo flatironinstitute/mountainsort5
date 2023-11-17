@@ -46,7 +46,7 @@ def main():
             snippet_mask_radius=100
         )
     )
-    
+
     elapsed_sec = time.time() - timer
     duration_sec = recording.get_total_duration()
     print(f'Elapsed time for sorting: {elapsed_sec:.2f} sec -- x{(duration_sec / elapsed_sec):.2f} speed compared with real time for {recording.get_num_channels()} channels')

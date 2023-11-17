@@ -49,7 +49,7 @@ def sorting_scheme1(
         print(f'Channel {m}: {channel_locations[m]}')
 
     sorting_parameters.check_valid(M=M, N=N, sampling_frequency=sampling_frequency, channel_locations=channel_locations)
-    
+
     print('Loading traces')
     tt = Timer('load_traces')
     traces: np.ndarray = recording.get_traces()
@@ -93,7 +93,6 @@ def sorting_scheme1(
     L = snippets.shape[0]
     T = snippets.shape[1]
     assert snippets.shape[2] == M
-
 
     npca = sorting_parameters.npca_per_channel * M
     print(f'Computing PCA features with npca={npca}')
@@ -196,7 +195,7 @@ def sorting_scheme1(
     new_labels_mapping = np.argsort(np.argsort(aa)) + 1 # too tricky! my head aches right now
     labels = new_labels_mapping[labels - 1]
     tt.report()
-    
+
     print('Creating sorting object')
     tt = Timer('creating sorting object')
     sorting = si.NumpySorting.from_times_labels(times_list=[times], labels_list=[labels], sampling_frequency=sampling_frequency)
@@ -215,8 +214,8 @@ def remove_duplicate_times(times: npt.NDArray[np.int32], labels: npt.NDArray[np.
 
 def align_templates(templates: npt.NDArray[np.float32]):
     K = templates.shape[0]
-    T = templates.shape[1]
-    M = templates.shape[2]
+    # T = templates.shape[1]
+    # M = templates.shape[2]
     offsets = np.zeros((K,), dtype=np.int32)
     pairwise_optimal_offsets = np.zeros((K, K), dtype=np.int32)
     pairwise_inner_products = np.zeros((K, K), dtype=np.float32)
@@ -248,7 +247,7 @@ def align_templates(templates: npt.NDArray[np.float32]):
             break
     print('Align templates offsets: ', offsets)
     return offsets
-    
+
 
 def compute_pairwise_optimal_offset(template1: npt.NDArray[np.float32], template2: npt.NDArray[np.float32]):
     T = template1.shape[0]
@@ -290,7 +289,7 @@ def determine_offsets_to_peak(templates: npt.NDArray[np.float32], *, detect_sign
         A = templates # pragma: no cover
     else:
         A = np.abs(templates) # pragma: no cover
-    
+
     offsets_to_peak = np.zeros((K,), dtype=np.int32)
     for k in range(K):
         peak_channel = np.argmax(np.max(A[k], axis=0))

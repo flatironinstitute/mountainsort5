@@ -14,7 +14,7 @@ jobs:
       run: pip install h5py pandas networkx
     - name: Install packages needed for tests
       # pyright 1.1.336 produces annoying errors
-      run: pip install pytest pytest-cov pyright==1.1.335 black spikeforest
+      run: pip install pytest pytest-cov pyright==1.1.335 flake8 spikeforest
     - name: Run tests and collect coverage
       run: pyright && pytest --cov mountainsort5 --cov-report=xml --cov-report=term tests/
     - uses: codecov/codecov-action@v3

@@ -290,7 +290,7 @@ def sorting_scheme2(
         if reference_snippet_classifiers is not None:
             assert labels_reference_list is not None
             labels_reference_list.append(labels_reference_chunk)
-        
+
         tt.report()
 
     # Now concatenate the results

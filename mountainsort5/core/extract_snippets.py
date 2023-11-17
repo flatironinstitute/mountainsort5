@@ -27,7 +27,7 @@ def extract_snippets(
                     adjacency[m].append(m2)
     else:
         adjacency = None
-    
+
     snippets = np.zeros((L, T1 + T2, M), dtype=np.float32)
     for j in range(L):
         t1 = times[j] - T1
@@ -57,5 +57,5 @@ def extract_snippets_in_channel_neighborhood(
         t1 = times[j] - T1
         t2 = times[j] + T2
         snippets[j] = traces[t1:t2][:, neighborhood]
-            
+
     return snippets

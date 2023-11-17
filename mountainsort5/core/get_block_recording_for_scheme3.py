@@ -1,5 +1,4 @@
 import spikeinterface as si
-from typing import Literal
 
 
 def get_block_recording_for_scheme3(
@@ -18,7 +17,7 @@ class BlockRecording(si.BaseRecording):
         sampling_frequency = recording.get_sampling_frequency()
         dtype = recording.get_dtype()
         channel_ids = recording.get_channel_ids()
-        
+
         si.BaseRecording.__init__(self, sampling_frequency, [ch for ch in channel_ids], dtype)
 
         self.start_frame = start_frame

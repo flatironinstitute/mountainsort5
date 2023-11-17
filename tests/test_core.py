@@ -28,7 +28,7 @@ def test_compute_templates():
 def test_detect_spikes():
     N = 100
     M = 3
-    traces= np.zeros((N, M), dtype=np.float32)
+    traces = np.zeros((N, M), dtype=np.float32)
     channel_locations = np.zeros((M, 2), dtype=np.float32)
     traces[8, 0] = -10 # in margin
     traces[9, 1] = -4 # in margin
@@ -190,7 +190,7 @@ def test_get_times_labels_from_sorting():
     try:
         # depending on the version of spikeinterface we do one or the other method
         sorting2 = se.NumpySorting(sampling_frequency=30000, spikes=np.array([]), unit_ids=np.array([])) # type: ignore
-    except:
+    except: # noqa
         sorting2 = se.NumpySorting(sampling_frequency=30000) # type: ignore
     times2, labels2 = get_times_labels_from_sorting(sorting2)
     assert len(times2) == 0

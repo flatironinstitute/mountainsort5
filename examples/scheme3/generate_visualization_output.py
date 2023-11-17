@@ -1,14 +1,9 @@
 from typing import List
 import os
-import time
 import json
 import yaml
 import numpy as np
 import spikeinterface as si
-import spikeinterface.preprocessing as spre
-import spikeinterface.comparison as sc
-import mountainsort5 as ms5
-import spikeforest as sf
 import figurl as fg
 import sortingview.views as vv
 from mountainsort5.core.extract_snippets import extract_snippets
@@ -19,7 +14,7 @@ from spikeforest.load_spikeforest_recordings.SFRecording import SFRecording
 
 def generate_visualization_output(*, rec: SFRecording, recording_preprocessed: si.BaseRecording, sorting: si.BaseSorting, sorting_true: si.BaseSorting):
     os.environ['KACHERY_STORE_FILE_DIR'] = f'output/{rec.recording_name}'
-    os.environ['KACHERY_STORE_FILE_PREFIX'] = f'$dir'
+    os.environ['KACHERY_STORE_FILE_PREFIX'] = '$dir'
 
     if not os.path.exists('output'):
         os.mkdir('output')
@@ -29,7 +24,7 @@ def generate_visualization_output(*, rec: SFRecording, recording_preprocessed: s
     if not os.path.exists(f'{output_dir}/recording'):
         print('Saving preprocessed recording')
         recording_preprocessed.save(folder=f'{output_dir}/recording', format='binary')
-    
+
     units_dict = {}
     units_dict['true'] = sorting_true.get_unit_spike_train(sorting_true.unit_ids[0], segment_index=0).astype(np.int32)
     for unit_id in sorting.unit_ids:
@@ -37,13 +32,13 @@ def generate_visualization_output(*, rec: SFRecording, recording_preprocessed: s
     try:
         # depends on version of SI
         sorting_with_true = si.NumpySorting.from_unit_dict([units_dict], sampling_frequency=sorting.sampling_frequency) # type: ignore
-    except:
+    except: # noqa
         sorting_with_true = si.NumpySorting.from_dict([units_dict], sampling_frequency=sorting.sampling_frequency) # type: ignore
 
     print('Loading traces')
     traces: np.ndarray = recording_preprocessed.get_traces()
     channel_locations = recording_preprocessed.get_channel_locations()
-    
+
     unit_ids = sorting_with_true.unit_ids
     channel_ids = recording_preprocessed.channel_ids
     K = len(unit_ids)
@@ -62,7 +57,7 @@ def generate_visualization_output(*, rec: SFRecording, recording_preprocessed: s
         str(unit_ids[i]): channel_ids[np.argmin(np.min(templates[i], axis=0))]
         for i in range(K)
     }
-    
+
     sorting_data = {
         'samplingFrequency': sorting_with_true.get_sampling_frequency(),
         'units': [
@@ -77,11 +72,11 @@ def generate_visualization_output(*, rec: SFRecording, recording_preprocessed: s
     }
     with open(f'{output_dir}/sorting.json', 'w') as f:
         json.dump(fg.serialize_data(sorting_data), f)
-    
+
     v_et = vv.EphysTraces(
         format='spikeinterface.binary',
-        uri=f'$dir/recording',
-        sorting_uri=f'$dir/sorting.json'
+        uri='$dir/recording',
+        sorting_uri='$dir/sorting.json'
     )
 
     # v_et_2 = vv.EphysTraces(
@@ -114,10 +109,10 @@ def generate_visualization_output(*, rec: SFRecording, recording_preprocessed: s
                 bin_counts = a['bin_counts']
                 cross_correlogram_items.append(
                     vv.CrossCorrelogramItem(
-                        unit_id1 = str(unit_id1),
-                        unit_id2 = str(unit_id2),
-                        bin_edges_sec = bin_edges_sec,
-                        bin_counts = bin_counts
+                        unit_id1=str(unit_id1),
+                        unit_id2=str(unit_id2),
+                        bin_edges_sec=bin_edges_sec,
+                        bin_counts=bin_counts
                     )
                 )
     v_cc = vv.CrossCorrelograms(

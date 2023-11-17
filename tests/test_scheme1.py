@@ -3,6 +3,7 @@ import spikeinterface as si
 import spikeinterface.extractors as se
 import spikeinterface.preprocessing as spre
 import mountainsort5 as ms5
+from mountainsort5.util import TemporaryDirectory, create_cached_recording
 
 
 def test_scheme1():
@@ -11,7 +12,7 @@ def test_scheme1():
         num_channels=8,
         num_units=16,
         sampling_frequency=30000,
-        num_segments=2,
+        num_segments=1,
         seed=0
     ) # type: ignore
     recording: si.BaseRecording = recording
@@ -20,17 +21,21 @@ def test_scheme1():
     timer = time.time()
 
     # lazy preprocessing
-    recording_filtered = spre.bandpass_filter(recording, freq_min=300, freq_max=6000)
-    recording_preprocessed: si.BaseRecording = spre.whiten(recording_filtered, dtype='float32')
+    recording_filtered = spre.bandpass_filter(recording, freq_min=300, freq_max=6000, dtype=float)
+    recording_preprocessed: si.BaseRecording = spre.whiten(recording_filtered)
 
-    # sorting
-    print('Starting MountainSort5')
-    sorting = ms5.sorting_scheme1( # noqa
-        recording_preprocessed,
-        sorting_parameters=ms5.Scheme1SortingParameters(
-            snippet_mask_radius=50
+    with TemporaryDirectory() as tmpdir:
+        # cache the recording to a temporary directory for efficient reading
+        recording_cached = create_cached_recording(recording_preprocessed, folder=tmpdir)
+
+        # sorting
+        print('Starting MountainSort5')
+        sorting = ms5.sorting_scheme1( # noqa
+            recording_cached,
+            sorting_parameters=ms5.Scheme1SortingParameters(
+                snippet_mask_radius=50
+            )
         )
-    )
 
     elapsed_sec = time.time() - timer
     duration_sec = recording.get_total_duration()

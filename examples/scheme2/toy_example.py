@@ -5,6 +5,7 @@ import spikeinterface.extractors as se
 import spikeinterface.preprocessing as spre
 import spikeinterface.comparison as sc
 import mountainsort5 as ms5
+from mountainsort5.util import TemporaryDirectory, create_cached_recording
 from generate_visualization_output import generate_visualization_output
 from spikeforest.load_spikeforest_recordings.SFRecording import SFRecording
 import spikeinterface as si
@@ -17,20 +18,24 @@ def main():
     timer = time.time()
 
     # lazy preprocessing
-    recording_filtered = spre.bandpass_filter(recording, freq_min=300, freq_max=6000)
-    recording_preprocessed: si.BaseRecording = spre.whiten(recording_filtered, dtype='float32')
+    recording_filtered = spre.bandpass_filter(recording, freq_min=300, freq_max=6000, dtype=float)
+    recording_preprocessed: si.BaseRecording = spre.whiten(recording_filtered)
 
-    # sorting
-    print('Starting MountainSort5 (scheme 2)')
-    sorting = ms5.sorting_scheme2(
-        recording_preprocessed,
-        sorting_parameters=ms5.Scheme2SortingParameters(
-            phase1_detect_channel_radius=150,
-            detect_channel_radius=50,
-            training_duration_sec=60
+    with TemporaryDirectory() as tmpdir:
+        # cache the recording to a temporary directory for efficient reading
+        recording_cached = create_cached_recording(recording_preprocessed, folder=tmpdir)
+
+        # sorting
+        print('Starting MountainSort5 (scheme 2)')
+        sorting = ms5.sorting_scheme2(
+            recording_cached,
+            sorting_parameters=ms5.Scheme2SortingParameters(
+                phase1_detect_channel_radius=150,
+                detect_channel_radius=50,
+                training_duration_sec=60
+            )
         )
-    )
-    assert isinstance(sorting, si.BaseSorting)
+        assert isinstance(sorting, si.BaseSorting)
 
     elapsed_sec = time.time() - timer
     duration_sec = recording.get_total_duration()

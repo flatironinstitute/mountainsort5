@@ -16,4 +16,4 @@ jobs:
     - name: Install packages needed for tests
       run: pip install pyright flake8
     - name: Run linter checks
-      run: cd python && flake8 --config ../.flake8 && pyright
+      run: flake8 --config ../.flake8 && pyright

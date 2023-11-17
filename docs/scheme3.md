@@ -8,6 +8,7 @@ This scheme is designed to handle long recordings that may involve spike wavefor
 import spikeinterface as si
 import spikeinterface.preprocessing as spre
 import mountainsort5 as ms5
+from mountainsort5.util import TemporaryDirectory, create_cached_recording
 
 recording = ... # load your recording using SpikeInterface
 
@@ -18,17 +19,21 @@ recording = ... # load your recording using SpikeInterface
 # recording = spre.scale(recording, gain=...)
 
 # lazy preprocessing
-recording_filtered = spre.bandpass_filter(recording, freq_min=300, freq_max=6000)
-recording_preprocessed: si.BaseRecording = spre.whiten(recording_filtered, dtype='float32')
+recording_filtered = spre.bandpass_filter(recording, freq_min=300, freq_max=6000, dtype=float)
+recording_preprocessed: si.BaseRecording = spre.whiten(recording_filtered)
 
-# use scheme 3
-sorting = ms5.sorting_scheme3(
-    recording=recording_preprocessed,
-    sorting_parameters=ms5.Scheme3SortingParameters(
-        block_sorting_parameters=ms5.Scheme2SortingParameters(...),
-        block_duration_sec=60 * 10
+with TemporaryDirectory() as tmpdir:
+    # cache the recording to a temporary directory for efficient reading
+    recording_cached = create_cached_recording(recording_preprocessed, folder=tmpdir)
+
+    # use scheme 3
+    sorting = ms5.sorting_scheme3(
+        recording=recording_cached,
+        sorting_parameters=ms5.Scheme3SortingParameters(
+            block_sorting_parameters=ms5.Scheme2SortingParameters(...),
+            block_duration_sec=60 * 10
+        )
     )
-)
 ```
 
 ## Parameters

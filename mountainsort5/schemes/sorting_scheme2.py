@@ -227,6 +227,7 @@ def sorting_scheme2(
             margin_right=sorting_parameters.snippet_T2,
             verbose=False
         )
+        print(f'Scheme 2 detected {len(times_chunk)} spikes in chunk {i + 1} of {len(chunks)}')
         tt.report()
 
         print('Extracting and classifying snippets')

@@ -69,6 +69,7 @@ def sorting_scheme1(
         margin_right=sorting_parameters.snippet_T2,
         verbose=True
     )
+    print(f'Detected {len(times)} spikes')
     tt.report()
 
     print('Removing duplicate times')
@@ -110,6 +111,7 @@ def sorting_scheme1(
         K = int(np.max(labels))
     else:
         K = 0
+    print(f'Found {K} clusters')
     tt.report()
 
     print('Computing templates')
@@ -149,7 +151,7 @@ def sorting_scheme1(
     else:
         K = 0
     tt.report()
-    print(f'Found {K} clusters')
+    print(f'Found {K} clusters after alignment')
 
     print('Computing templates')
     tt = Timer('compute_templates')
@@ -186,7 +188,7 @@ def sorting_scheme1(
     # relabel so that units are ordered by channel
     # and we also put any labels that are not used at the end
     tt = Timer('reordering units')
-    aa = [float(x) for x in peak_channel_indices]
+    aa = np.array([float(x) for x in peak_channel_indices])
     for k in range(1, K + 1):
         inds = np.where(labels == k)[0]
         if len(inds) == 0:
@@ -206,7 +208,7 @@ def remove_duplicate_times(times: npt.NDArray[np.int32], labels: npt.NDArray[np.
     if len(times) == 0:
         return times, labels
     inds = np.where(np.diff(times) > 0)[0]
-    inds = np.concatenate([[0], inds + 1])
+    inds = np.concatenate([np.array([0]), inds + 1])
     times2 = times[inds]
     labels2 = labels[inds]
     return times2, labels2

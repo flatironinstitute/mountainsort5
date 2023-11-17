@@ -29,22 +29,22 @@ class Scheme2SortingParameters:
     """
     phase1_detect_channel_radius: Union[float, None]
     detect_channel_radius: Union[float, None]
-    phase1_detect_threshold: float=5.5
-    phase1_detect_time_radius_msec: float=1.5
-    detect_time_radius_msec: float=0.5
-    phase1_npca_per_channel: int=3
-    phase1_npca_per_subdivision: int=10
-    subdivision: int=10
-    phase1_pairwise_merge_step: bool=False # deprecated
-    detect_sign: int=-1
-    detect_threshold: float=5.5
-    snippet_T1: int=20
-    snippet_T2: int=20
-    snippet_mask_radius: Union[float, None]=None
-    max_num_snippets_per_training_batch: int=200
-    classifier_npca: Union[int, None]=None
-    training_duration_sec: Union[float, None]=None
-    training_recording_sampling_mode: Literal['initial', 'uniform']='initial'
+    phase1_detect_threshold: float = 5.5
+    phase1_detect_time_radius_msec: float = 1.5
+    detect_time_radius_msec: float = 0.5
+    phase1_npca_per_channel: int = 3
+    phase1_npca_per_subdivision: int = 10
+    subdivision: int = 10
+    phase1_pairwise_merge_step: bool = False # deprecated
+    detect_sign: int = -1
+    detect_threshold: float = 5.5
+    snippet_T1: int = 20
+    snippet_T2: int = 20
+    snippet_mask_radius: Union[float, None] = None
+    max_num_snippets_per_training_batch: int = 200
+    classifier_npca: Union[int, None] = None
+    training_duration_sec: Union[float, None] = None
+    training_recording_sampling_mode: Literal['initial', 'uniform'] = 'initial'
 
     def check_valid(self, *, M: int, N: int, sampling_frequency: float, channel_locations: npt.NDArray[np.float32]):
         """Internal function for checking validity of parameters"""
@@ -61,6 +61,5 @@ class Scheme2SortingParameters:
         assert self.phase1_detect_time_radius_msec > 0 and self.phase1_detect_time_radius_msec <= 1e4
         assert self.phase1_detect_threshold > 0
         assert self.detect_sign in [-1, 0, 1]
-        assert self.phase1_npca_per_channel >=1 and self.phase1_npca_per_channel <= 1e3
+        assert self.phase1_npca_per_channel >= 1 and self.phase1_npca_per_channel <= 1e3
         assert self.phase1_npca_per_subdivision >= 1 and self.phase1_npca_per_subdivision <= 1e3
-

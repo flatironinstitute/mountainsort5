@@ -2,7 +2,6 @@ import time
 import spikeinterface as si
 import spikeinterface.extractors as se
 import spikeinterface.preprocessing as spre
-import spikeinterface.comparison as sc
 import mountainsort5 as ms5
 
 
@@ -26,7 +25,7 @@ def test_scheme3():
 
     # sorting
     print('Starting MountainSort5')
-    sorting = ms5.sorting_scheme3(
+    sorting = ms5.sorting_scheme3( # noqa
         recording_preprocessed,
         sorting_parameters=ms5.Scheme3SortingParameters(
             block_sorting_parameters=ms5.Scheme2SortingParameters(
@@ -36,7 +35,7 @@ def test_scheme3():
             block_duration_sec=3
         )
     )
-    
+
     elapsed_sec = time.time() - timer
     duration_sec = recording.get_total_duration()
     print(f'Elapsed time for sorting: {elapsed_sec:.2f} sec -- x{(duration_sec / elapsed_sec):.2f} speed compared with real time for {recording.get_num_channels()} channels')

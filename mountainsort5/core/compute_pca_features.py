@@ -5,7 +5,7 @@ from sklearn import decomposition
 
 def compute_pca_features(X: npt.NDArray[np.float32], *, npca: int):
     """Compute PCA features.
-    
+
     Parameters
     ----------
     X : npt.NDArray[np.float32]
@@ -13,7 +13,7 @@ def compute_pca_features(X: npt.NDArray[np.float32], *, npca: int):
         number of features.
     npca : int
         Number of PCA features to return.
-    
+
     Returns
     -------
     npt.NDArray[np.float32]

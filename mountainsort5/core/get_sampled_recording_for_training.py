@@ -46,7 +46,7 @@ def get_sampled_recording_for_training(
             traces = np.concatenate(traces_list, axis=0)
     else:
         raise Exception('Invalid mode: ' + mode) # pragma: no cover
-    
+
     rec = si.NumpyRecording(
         traces_list=[traces],
         sampling_frequency=recording.sampling_frequency,

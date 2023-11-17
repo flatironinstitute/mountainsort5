@@ -1,5 +1,4 @@
 import numpy as np
-from typing import Union, Literal
 from dataclasses import dataclass
 from .Scheme2SortingParameters import Scheme2SortingParameters
 

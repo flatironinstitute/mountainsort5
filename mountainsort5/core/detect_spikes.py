@@ -23,7 +23,7 @@ def detect_spikes(
     elif detect_sign == 0:
         # todo: figure out how to avoid making a copy
         traces = -np.abs(traces) # pragma: no cover
-    
+
     adjacency = []
     for m in range(M):
         adjacency.append([])
@@ -35,9 +35,9 @@ def detect_spikes(
     print(f'Adjacency for detect spikes with channel radius {channel_radius}')
     print(adjacency)
     print('')
-    
+
     inds1, inds2 = np.nonzero(traces <= -detect_threshold)
-    
+
     candidate_times = [[] for m in range(M)]
     candidate_values = [[] for m in range(M)]
     for i in range(len(inds1)):
@@ -68,17 +68,16 @@ def detect_spikes(
                 jj = ii
                 while jj < len(tt) and tt[jj] <= t + time_radius:
                     if vv[jj] < v:
-                        okay =False
+                        okay = False
                         break
                     jj += 1
             if okay:
                 times.append(t)
                 channel_indices.append(m)
-    
+
     times = np.array(times, dtype=np.int32)
     channel_indices = np.array(channel_indices, dtype=np.int32)
     inds = np.argsort(times)
     times = times[inds]
     channel_indices = channel_indices[inds]
     return times, channel_indices
-

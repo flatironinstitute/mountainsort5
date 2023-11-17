@@ -14,6 +14,7 @@ jobs:
     - name: Install
       run: pip install -e .
     - name: Install packages needed for tests
-      run: pip install pyright flake8
+      # pyright 1.1.336 produces annoying errors
+      run: pip install pyright==1.1.335 flake8
     - name: Run linter checks
       run: flake8 --config .flake8 && pyright

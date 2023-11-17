@@ -16,8 +16,10 @@ jobs:
       run: pip install h5py pandas networkx
     - name: Install packages needed for tests
       run: pip install pytest pytest-cov black pyright spikeforest
+    - name: Run pyright
+      run: pyright
     - name: Run tests
-      run: pyright && pytest tests/
+      run: pytest tests/
     - name: Build
       run: python3 -m pip install --upgrade build && python3 -m build
     - name: Publish package

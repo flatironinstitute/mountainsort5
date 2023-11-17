@@ -267,7 +267,7 @@ def align_snippets(snippets: npt.NDArray[np.float32], offsets: npt.NDArray[np.in
     if len(labels) == 0:
         return snippets
     snippets2 = np.zeros_like(snippets)
-    for k in range(1, np.max(labels) + 1):
+    for k in range(1, int(np.max(labels)) + 1):
         inds = np.where(labels == k)[0]
         snippets2[inds] = np.roll(snippets[inds], shift=offsets[k - 1], axis=1)
     return snippets2
@@ -276,7 +276,7 @@ def offset_times(times: npt.NDArray[np.int32], offsets: npt.NDArray[np.int32], l
     if len(labels) == 0:
         return times
     times2 = np.zeros_like(times)
-    for k in range(1, np.max(labels) + 1):
+    for k in range(1, int(np.max(labels)) + 1):
         inds = np.where(labels == k)[0]
         times2[inds] = times[inds] + offsets[k - 1]
     return times2

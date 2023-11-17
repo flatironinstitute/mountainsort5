@@ -38,7 +38,7 @@ def isosplit6_subdivision_method(
     features = compute_pca_features(X_sub, npca=npca_per_subdivision)
     labels = isosplit6(features)
     if len(labels) > 0:
-        K = np.max(labels)
+        K = int(np.max(labels))
     else:
         K = 0
     if K <= 1:
@@ -70,8 +70,8 @@ def isosplit6_subdivision_method(
         inds2_b = inds2
     labels1 = isosplit6_subdivision_method(X, npca_per_subdivision=npca_per_subdivision, inds=inds1_b)
     labels2 = isosplit6_subdivision_method(X, npca_per_subdivision=npca_per_subdivision, inds=inds2_b)
-    K1 = np.max(labels1)
-    K2 = np.max(labels2)
+    K1 = int(np.max(labels1))
+    K2 = int(np.max(labels2))
     ret_labels = np.zeros(L, dtype=np.int32)
     ret_labels[inds1] = labels1
     ret_labels[inds2] = labels2 + K1

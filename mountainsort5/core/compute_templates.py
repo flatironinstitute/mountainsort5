@@ -19,7 +19,7 @@ def compute_templates(snippets: npt.NDArray[np.float32], labels: npt.NDArray[np.
         raise Exception('Length of labels must equal number of snippets')
     if L == 0:
         return np.zeros((0, T, M), dtype=np.float32)
-    K = np.max(labels)
+    K = int(np.max(labels))
     templates = np.zeros((K, T, M), dtype=np.float32)
     for k in range(1, K + 1):
         snippets1 = snippets[labels == k]

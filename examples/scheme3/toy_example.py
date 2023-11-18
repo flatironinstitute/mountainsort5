@@ -1,6 +1,7 @@
 import os
 import time
 import shutil
+import numpy as np
 import spikeinterface.extractors as se
 import spikeinterface.preprocessing as spre
 import spikeinterface.comparison as sc
@@ -25,7 +26,7 @@ def main():
     timer = time.time()
 
     # lazy preprocessing
-    recording_filtered = spre.bandpass_filter(recording, freq_min=300, freq_max=6000, dtype=float)
+    recording_filtered = spre.bandpass_filter(recording, freq_min=300, freq_max=6000, dtype=np.float32)
     recording_preprocessed: si.BaseRecording = spre.whiten(recording_filtered)
 
     with TemporaryDirectory() as tmpdir:

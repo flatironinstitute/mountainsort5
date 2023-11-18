@@ -32,6 +32,7 @@ MountainSort5 utilizes [SpikeInterface](https://github.com/spikeinterface/spikei
 Once you have loaded a SpikeInterface recording object, you can run MountainSort5 using the following code:
 
 ```python
+import numpy as np
 import spikeinterface as si
 import spikeinterface.preprocessing as spre
 import mountainsort5 as ms5
@@ -46,7 +47,7 @@ recording = ... # load your recording using SpikeInterface
 # recording = spre.scale(recording, gain=...)
 
 # lazy preprocessing
-recording_filtered = spre.bandpass_filter(recording, freq_min=300, freq_max=6000, dtype=float)
+recording_filtered = spre.bandpass_filter(recording, freq_min=300, freq_max=6000, dtype=np.float32)
 recording_preprocessed: si.BaseRecording = spre.whiten(recording_filtered)
 
 with TemporaryDirectory() as tmpdir:

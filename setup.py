@@ -5,7 +5,7 @@ from pathlib import Path
 this_directory = Path(__file__).parent
 long_description = (this_directory / "README.md").read_text()
 
-__version__ = '0.5.0'
+__version__ = '0.5.1'
 
 setup(
     name='mountainsort5',

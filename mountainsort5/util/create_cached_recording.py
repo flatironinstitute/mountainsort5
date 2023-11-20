@@ -2,7 +2,7 @@ import os
 import spikeinterface as si
 
 
-def create_cached_recording(recording: si.BaseRecording, *, folder: str):
+def create_cached_recording(recording: si.BaseRecording, *, folder: str, n_jobs: int = 1) -> si.BaseRecording:
     if not os.path.exists(folder):
         os.mkdir(folder)
     fname = f'{folder}/recording.dat'
@@ -13,7 +13,7 @@ def create_cached_recording(recording: si.BaseRecording, *, folder: str):
         recording=recording,
         file_paths=[fname],
         dtype='float32',
-        n_jobs=1, # There may be some issues with parallelization (h5py and remfile, who knows)
+        n_jobs=n_jobs,
         chunk_duration='5s', # not sure how to best set this
     )
     ret = si.BinaryRecordingExtractor(

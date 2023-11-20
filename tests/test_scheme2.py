@@ -1,10 +1,11 @@
 import time
+from tempfile import TemporaryDirectory
 import numpy as np
 import spikeinterface as si
 import spikeinterface.extractors as se
 import spikeinterface.preprocessing as spre
 import mountainsort5 as ms5
-from mountainsort5.util import TemporaryDirectory, create_cached_recording
+from mountainsort5.util import create_cached_recording
 
 
 def test_scheme2():

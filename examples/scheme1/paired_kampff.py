@@ -1,11 +1,12 @@
 import os
 import time
+from tempfile import TemporaryDirectory
 import numpy as np
 import spikeinterface as si
 import spikeinterface.preprocessing as spre
 import spikeinterface.comparison as sc
 import mountainsort5 as ms5
-from mountainsort5.util import TemporaryDirectory, create_cached_recording
+from mountainsort5.util import create_cached_recording
 import spikeforest as sf
 from generate_visualization_output import generate_visualization_output
 

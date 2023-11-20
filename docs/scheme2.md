@@ -7,11 +7,12 @@ In phase 1, the first scheme is used as a training step, performing unsupervised
 ## Usage
 
 ```python
+from tempfile import TemporaryDirectory
 import numpy as np
 import spikeinterface as si
 import spikeinterface.preprocessing as spre
 import mountainsort5 as ms5
-from mountainsort5.util import TemporaryDirectory, create_cached_recording
+from mountainsort5.util import create_cached_recording
 
 recording = ... # load your recording using SpikeInterface
 

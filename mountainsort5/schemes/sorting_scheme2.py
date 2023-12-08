@@ -200,7 +200,8 @@ def sorting_scheme2(
 
     # Now that we have the classifier, we can do the full sorting
     # Iterate over time chunks, detect and classify all spikes, and collect the results
-    chunk_size = int(math.ceil(100e6 / recording.get_num_channels())) # size of chunks in samples
+    chunk_size = int(math.ceil(sorting_parameters.classification_chunk_sec * recording.sampling_frequency))
+
     print(f'Chunk size: {chunk_size / recording.sampling_frequency} sec')
     chunks = get_time_chunks(np.int64(recording.get_num_samples()), chunk_size=np.int32(chunk_size), padding=np.int32(1000))
     times_list: list[npt.NDArray[np.int64]] = []

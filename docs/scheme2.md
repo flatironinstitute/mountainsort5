@@ -106,6 +106,10 @@ The duration of the training data (in seconds). See also the `training_recording
 
 How to sample the training data. If 'initial', then the first training_duration_sec of the recording will be used. If 'uniform', then the training data will be sampled uniformly in 10-second chunks from the recording.
 
+**classification_chunk_sec**
+
+Amount of data (in seconds) loaded into memory at a time during the extraction / classification step of scheme 2
+
 ## Algorithm
 
 **Phase 1.** First, a subset of the recording is extracted for training, according to the `training_duration_sec` and `training_recording_sampling_mode` parameters. Then, scheme 1 detection and clustering is performed on this training subset.

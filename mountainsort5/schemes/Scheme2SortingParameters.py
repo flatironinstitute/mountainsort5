@@ -35,7 +35,6 @@ class Scheme2SortingParameters:
     detect_time_radius_msec: float = 0.5
     phase1_npca_per_channel: int = 3
     phase1_npca_per_subdivision: int = 10
-    subdivision: int = 10
     phase1_pairwise_merge_step: bool = False # deprecated
     detect_sign: int = -1
     detect_threshold: float = 5.5

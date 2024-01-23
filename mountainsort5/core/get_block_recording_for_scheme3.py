@@ -1,3 +1,4 @@
+from typing import Union
 import spikeinterface as si
 
 
@@ -46,7 +47,10 @@ class BlockRecordingSegment(si.BaseRecordingSegment):
     def get_num_samples(self):
         return self._end_frame - self._start_frame
 
-    def get_traces(self, start_frame, end_frame, channel_indices):
+    def get_traces(self, start_frame: Union[int, None] = None,
+        end_frame: Union[int, None] = None,
+        channel_indices=None
+    ):
         if start_frame is None:
             start_frame = 0
         if end_frame is None:

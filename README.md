@@ -114,7 +114,7 @@ Sorting scheme 3 is designed to handle long recordings that may involve waveform
 
 ## Citing MountainSort
 
-For now, please cite the original MountainSort paper:
+For now, please cite the original MountainSort paper that corresponds to a previous version:
 
 ```bitex
 @article{chung2017fully,

@@ -8,7 +8,6 @@ import spikeinterface.comparison as sc
 import mountainsort5 as ms5
 from mountainsort5.util import create_cached_recording
 from generate_visualization_output import generate_visualization_output
-from spikeforest.load_spikeforest_recordings.SFRecording import SFRecording
 import spikeinterface as si
 
 def main():
@@ -44,6 +43,7 @@ def main():
     #######################################################################
 
     if os.getenv('GENERATE_VISUALIZATION_OUTPUT') == '1':
+        from spikeforest.load_spikeforest_recordings.SFRecording import SFRecording
         rec = SFRecording({
             'name': 'toy_example',
             'studyName': 'toy_example',

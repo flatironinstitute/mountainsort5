@@ -112,7 +112,7 @@ Sorting scheme 3 is designed to handle long recordings that may involve waveform
 
 [Read more about scheme 3](./docs/scheme3.md)
 
-### Quip (Quip, preliminary neural unit estimator)
+### Quip (Quick, preliminary neural unit estimator)
 
 Quip can be used to quickly estimate the number of units in a recording, together with estimated firing rates, peak channel IDs and peak SNRs.
 

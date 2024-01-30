@@ -14,7 +14,7 @@ from ..schemes.sorting_scheme2 import TimeChunk
 class EstimateUnitsParameters:
     block_sorting_parameters: Scheme1SortingParameters = Scheme1SortingParameters()
     avg_num_channels_per_neighborhood: Union[int, None] = 7
-    block_duration_sec: Union[float, None] = 300
+    block_duration_sec: float = 300
     max_num_blocks: Union[int, None] = 10
 
     def check_valid(
@@ -53,8 +53,8 @@ class EstimateUnitsUnit:
 
 @dataclass
 class EstimateUnitsBlock:
-    start_time_sec: int
-    end_time_sec: int
+    start_time_sec: float
+    end_time_sec: float
     units: List[EstimateUnitsUnit]
 
     def to_dict(self):
@@ -165,18 +165,20 @@ def estimate_units(
             subrecording, freq_min=300, freq_max=6000, dtype=np.float32
         )
         subrecording_preprocessed = spre.whiten(subrecording_filtered)
-        subsorting, extra_output = sorting_scheme1(
+        aa = sorting_scheme1(
             subrecording_preprocessed,
             sorting_parameters=estimate_units_parameters.block_sorting_parameters,
             return_extra_output=True,
         )
+        assert isinstance(aa, tuple)
+        subsorting, extra_output = aa
         assert isinstance(subsorting, si.NumpySorting)
         labels0 = extra_output.labels
         templates0 = extra_output.templates
         peak_channel_indices0 = extra_output.peak_channel_indices
         estimate_units_block = EstimateUnitsBlock(
-            start_time_sec=block.start / sampling_frequency,
-            end_time_sec=block.end / sampling_frequency,
+            start_time_sec=float(block.start / sampling_frequency),
+            end_time_sec=float(block.end / sampling_frequency),
             units=[],
         )
         output.blocks.append(estimate_units_block)
@@ -216,9 +218,9 @@ def _auto_detect_channel_neighborhood_radius(
         )
     avg_nbhd_sizes = np.array(avg_nbhd_sizes)
     if np.min(avg_nbhd_sizes) > avg_num_channels_per_neighborhood:
-        return 1
+        return float(1)
     if np.max(avg_nbhd_sizes) < avg_num_channels_per_neighborhood:
-        return np.max(unique_distances)
+        return float(np.max(unique_distances))
     ind = np.where(avg_nbhd_sizes >= avg_num_channels_per_neighborhood)[0][0]
     print(
         "------------------- a",
@@ -227,4 +229,4 @@ def _auto_detect_channel_neighborhood_radius(
         ind,
         unique_distances[ind],
     )
-    return unique_distances[ind]
+    return float(unique_distances[ind])

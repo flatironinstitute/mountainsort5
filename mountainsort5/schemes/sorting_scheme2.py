@@ -280,13 +280,13 @@ def sorting_scheme2(
         new_inds = remove_duplicate_events(times_chunk, labels_chunk, tol=time_radius)
         times_chunk: npt.NDArray[np.int32] = times_chunk[new_inds]
         labels_chunk: npt.NDArray[np.int32] = labels_chunk[new_inds]
-        labels_reference_chunk = labels_reference_chunk[new_inds] if reference_snippet_classifiers is not None else None
+        labels_reference_chunk = labels_reference_chunk[new_inds] if labels_reference_chunk is not None else None
 
         # remove events in the margins
         valid_inds = np.where((chunk.padding_left <= times_chunk) & (times_chunk < chunk.total_size - chunk.padding_right))[0]
         times_chunk: npt.NDArray[np.int32] = times_chunk[valid_inds]
         labels_chunk: npt.NDArray[np.int32] = labels_chunk[valid_inds]
-        labels_reference_chunk = labels_reference_chunk[valid_inds] if reference_snippet_classifiers is not None else None
+        labels_reference_chunk = labels_reference_chunk[valid_inds] if labels_reference_chunk is not None else None
 
         # don't forget to cast to int64 add the chunk start time
         times_list.append(

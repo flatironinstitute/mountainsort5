@@ -1,10 +1,4 @@
-from tempfile import TemporaryDirectory
-import numpy as np
-import spikeinterface.extractors as se
-import spikeinterface.preprocessing as spre
 import mountainsort5.quip as quip
-from mountainsort5.util import create_cached_recording
-import spikeinterface as si
 import spikeforest as sf
 
 

@@ -31,6 +31,7 @@ def main():
             recording_cached,
             sorting_parameters=ms5.Scheme1SortingParameters()
         )
+        assert isinstance(sorting, si.BaseSorting)
 
     elapsed_sec = time.time() - timer
     duration_sec = recording.get_total_duration()

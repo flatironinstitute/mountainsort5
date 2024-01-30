@@ -12,8 +12,6 @@ from helpers.compute_correlogram_data import compute_correlogram_data
 
 
 def generate_visualization_output(*, rec, recording_preprocessed: si.BaseRecording, sorting: si.BaseSorting, sorting_true: si.BaseSorting):
-    from spikeforest.load_spikeforest_recordings.SFRecording import SFRecording
-
     os.environ['KACHERY_STORE_FILE_DIR'] = f'output/{rec.recording_name}'
     os.environ['KACHERY_STORE_FILE_PREFIX'] = '$dir'
 

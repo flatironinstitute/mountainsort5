@@ -1,3 +1,4 @@
+from typing import List
 from dataclasses import dataclass
 import numpy as np
 import numpy.typing as npt
@@ -15,7 +16,7 @@ from ..core.Timer import Timer
 @dataclass
 class SortingSchemeExtraOutput:
     templates: npt.NDArray[np.float32]  # K x T x M
-    peak_channel_indices: npt.NDArray[np.int32]
+    peak_channel_indices: List[int]
     times: npt.NDArray[np.int32]
     labels: npt.NDArray[np.int32]
 
@@ -125,7 +126,7 @@ def sorting_scheme1(
     print('Computing templates')
     tt = Timer('compute_templates')
     templates = compute_templates(snippets=snippets, labels=labels) # K x T x M
-    peak_channel_indices = [np.argmin(np.min(templates[i], axis=0)) for i in range(K)]
+    peak_channel_indices = [int(np.argmin(np.min(templates[i], axis=0))) for i in range(K)]
     tt.report()
 
     if not sorting_parameters.skip_alignment:
@@ -165,7 +166,7 @@ def sorting_scheme1(
         print('Computing templates')
         tt = Timer('compute_templates')
         templates = compute_templates(snippets=snippets, labels=labels) # K x T x M
-        peak_channel_indices = [np.argmin(np.min(templates[i], axis=0)) for i in range(K)]
+        peak_channel_indices = [int(np.argmin(np.min(templates[i], axis=0))) for i in range(K)]
         tt.report()
 
         print('Offsetting times to peak')

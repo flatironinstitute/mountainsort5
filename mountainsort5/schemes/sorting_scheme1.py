@@ -1,3 +1,5 @@
+from typing import List
+from dataclasses import dataclass
 import numpy as np
 import numpy.typing as npt
 import math
@@ -11,9 +13,17 @@ from ..core.compute_pca_features import compute_pca_features
 from ..core.Timer import Timer
 
 
+@dataclass
+class SortingSchemeExtraOutput:
+    templates: npt.NDArray[np.float32]  # K x T x M
+    peak_channel_indices: List[int]
+    times: npt.NDArray[np.int32]
+    labels: npt.NDArray[np.int32]
+
 def sorting_scheme1(
     recording: si.BaseRecording, *,
-    sorting_parameters: Scheme1SortingParameters
+    sorting_parameters: Scheme1SortingParameters,
+    return_extra_output: bool = False
 ):
     """MountainSort 5 sorting scheme 1
 
@@ -116,56 +126,57 @@ def sorting_scheme1(
     print('Computing templates')
     tt = Timer('compute_templates')
     templates = compute_templates(snippets=snippets, labels=labels) # K x T x M
-    peak_channel_indices = [np.argmin(np.min(templates[i], axis=0)) for i in range(K)]
+    peak_channel_indices = [int(np.argmin(np.min(templates[i], axis=0))) for i in range(K)]
     tt.report()
 
-    print('Determining optimal alignment of templates')
-    tt = Timer('align_templates')
-    offsets = align_templates(templates)
-    tt.report()
+    if not sorting_parameters.skip_alignment:
+        print('Determining optimal alignment of templates')
+        tt = Timer('align_templates')
+        offsets = align_templates(templates)
+        tt.report()
 
-    print('Aligning snippets')
-    tt = Timer('align_snippets')
-    snippets = align_snippets(snippets, offsets, labels)
-    # this is tricky - we need to subtract the offset to correspond to shifting the template
-    times = offset_times(times, -offsets, labels)
-    tt.report()
+        print('Aligning snippets')
+        tt = Timer('align_snippets')
+        snippets = align_snippets(snippets, offsets, labels)
+        # this is tricky - we need to subtract the offset to correspond to shifting the template
+        times = offset_times(times, -offsets, labels)
+        tt.report()
 
-    print('Clustering aligned snippets')
-    npca = sorting_parameters.npca_per_channel * M
+        print('Clustering aligned snippets')
+        npca = sorting_parameters.npca_per_channel * M
 
-    print(f'Computing PCA features with npca={npca}')
-    tt = Timer('compute_pca_features')
-    features = compute_pca_features(snippets.reshape((L, T * M)), npca=npca)
-    tt.report()
+        print(f'Computing PCA features with npca={npca}')
+        tt = Timer('compute_pca_features')
+        features = compute_pca_features(snippets.reshape((L, T * M)), npca=npca)
+        tt.report()
 
-    print(f'Isosplit6 clustering with npca_per_subdivision={sorting_parameters.npca_per_subdivision}')
-    tt = Timer('isosplit6_subdivision_method')
-    labels = isosplit6_subdivision_method(
-        X=features,
-        npca_per_subdivision=sorting_parameters.npca_per_subdivision
-    )
-    if len(labels) > 0:
-        K = int(np.max(labels))
-    else:
-        K = 0
-    tt.report()
-    print(f'Found {K} clusters after alignment')
+        print(f'Isosplit6 clustering with npca_per_subdivision={sorting_parameters.npca_per_subdivision}')
+        tt = Timer('isosplit6_subdivision_method')
+        labels = isosplit6_subdivision_method(
+            X=features,
+            npca_per_subdivision=sorting_parameters.npca_per_subdivision
+        )
+        if len(labels) > 0:
+            K = int(np.max(labels))
+        else:
+            K = 0
+        tt.report()
+        print(f'Found {K} clusters after alignment')
 
-    print('Computing templates')
-    tt = Timer('compute_templates')
-    templates = compute_templates(snippets=snippets, labels=labels) # K x T x M
-    peak_channel_indices = [np.argmin(np.min(templates[i], axis=0)) for i in range(K)]
-    tt.report()
+        print('Computing templates')
+        tt = Timer('compute_templates')
+        templates = compute_templates(snippets=snippets, labels=labels) # K x T x M
+        peak_channel_indices = [int(np.argmin(np.min(templates[i], axis=0))) for i in range(K)]
+        tt.report()
 
-    print('Offsetting times to peak')
-    tt = Timer('determine_offsets_to_peak')
-    # Now we need to offset the times again so that the spike times correspond to actual peaks
-    offsets_to_peak = determine_offsets_to_peak(templates, detect_sign=sorting_parameters.detect_sign, T1=sorting_parameters.snippet_T1)
-    print('Offsets to peak:', offsets_to_peak)
-    # This time we need to add the offset
-    times = offset_times(times, offsets_to_peak, labels)
-    tt.report()
+        print('Offsetting times to peak')
+        tt = Timer('determine_offsets_to_peak')
+        # Now we need to offset the times again so that the spike times correspond to actual peaks
+        offsets_to_peak = determine_offsets_to_peak(templates, detect_sign=sorting_parameters.detect_sign, T1=sorting_parameters.snippet_T1)
+        print('Offsets to peak:', offsets_to_peak)
+        # This time we need to add the offset
+        times = offset_times(times, offsets_to_peak, labels)
+        tt.report()
 
     # Now we need to make sure the times are in order, because we have offset them
     print('Sorting times')
@@ -201,7 +212,16 @@ def sorting_scheme1(
     sorting = si.NumpySorting.from_times_labels(times_list=[times], labels_list=[labels], sampling_frequency=sampling_frequency)
     tt.report()
 
-    return sorting
+    if return_extra_output:
+        extra_output = SortingSchemeExtraOutput(
+            templates=templates,
+            peak_channel_indices=peak_channel_indices,
+            times=times,
+            labels=labels
+        )
+        return sorting, extra_output
+    else:
+        return sorting
 
 def remove_duplicate_times(times: npt.NDArray[np.int32], labels: npt.NDArray[np.int32]):
     if len(times) == 0:

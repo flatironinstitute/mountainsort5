@@ -98,6 +98,7 @@ def sorting_scheme2(
             npca_per_subdivision=sorting_parameters.phase1_npca_per_subdivision
         )
     )
+    assert isinstance(sorting1, si.BaseSorting)
     tt.report()
 
     # Get the times and labels from the first phase sorting
@@ -279,13 +280,13 @@ def sorting_scheme2(
         new_inds = remove_duplicate_events(times_chunk, labels_chunk, tol=time_radius)
         times_chunk: npt.NDArray[np.int32] = times_chunk[new_inds]
         labels_chunk: npt.NDArray[np.int32] = labels_chunk[new_inds]
-        labels_reference_chunk = labels_reference_chunk[new_inds] if reference_snippet_classifiers is not None else None
+        labels_reference_chunk = labels_reference_chunk[new_inds] if labels_reference_chunk is not None else None
 
         # remove events in the margins
         valid_inds = np.where((chunk.padding_left <= times_chunk) & (times_chunk < chunk.total_size - chunk.padding_right))[0]
         times_chunk: npt.NDArray[np.int32] = times_chunk[valid_inds]
         labels_chunk: npt.NDArray[np.int32] = labels_chunk[valid_inds]
-        labels_reference_chunk = labels_reference_chunk[valid_inds] if reference_snippet_classifiers is not None else None
+        labels_reference_chunk = labels_reference_chunk[valid_inds] if labels_reference_chunk is not None else None
 
         # don't forget to cast to int64 add the chunk start time
         times_list.append(
@@ -370,25 +371,37 @@ class TimeChunk:
         self.padding_right = padding_right
         self.total_size = self.end - self.start + np.int64(padding_left) + np.int64(padding_right)
 
-def get_time_chunks(num_samples: np.int64, chunk_size: np.int32, padding: np.int32) -> List[TimeChunk]:
+def get_time_chunks(num_samples: np.int64, chunk_size: np.int32, padding: np.int32, max_num_blocks: Union[int, None] = None) -> List[TimeChunk]:
     """Get time chunks
     Inputs:
         num_samples: number of samples in the recording
         chunk_size: size of each chunk in samples
         padding: padding on each side of the chunk in samples
+        max_num_blocks: maximum number of blocks to return or None for no limit - if not None, spacing between blocks will be added
     Returns:
         chunks: list of TimeChunk objects
     """
+    spacing = 0
+    if max_num_blocks is not None:
+        if chunk_size * max_num_blocks < num_samples:
+            spacing = np.int64(np.floor((num_samples - chunk_size * max_num_blocks) / (max_num_blocks - 1)))
     chunks = []
     start = np.int64(0)
     while start < num_samples:
         end = np.int64(start) + np.int64(chunk_size)
         if end > num_samples:
             end = num_samples
+        if end + chunk_size / 2 > num_samples:
+            # if the next chunk will be too small, then just make this the last chunk
+            end = num_samples
         padding_left = np.minimum(padding, start)
         padding_right = np.minimum(padding, num_samples - end)
         chunks.append(TimeChunk(start=start, end=end, padding_left=padding_left, padding_right=padding_right))
         start = end
+        if spacing > 0:
+            start = start + spacing
+        if max_num_blocks is not None and len(chunks) >= max_num_blocks:
+            break
     return chunks
 
 def subsample_snippets(snippets: npt.NDArray[np.float32], max_num: int) -> np.ndarray:

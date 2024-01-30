@@ -16,6 +16,7 @@ class Scheme1SortingParameters:
     - snippet_mask_radius: the radius (in units of channel locations) for making a snippet around the central channel
     - npca_per_channel: the number of PCA components per channel for initial dimension reduction
     - npca_per_subdivision: the number of PCA components to compute for each subdivision of clustering
+    - skip_alignment: whether to skip the alignment step (if None, then False unless overridden by quip)
     """
     detect_threshold: float = 5.5
     detect_channel_radius: Union[float, None] = None
@@ -26,6 +27,7 @@ class Scheme1SortingParameters:
     snippet_mask_radius: Union[float, None] = None
     npca_per_channel: int = 3
     npca_per_subdivision: int = 10
+    skip_alignment: Union[bool, None] = None
     pairwise_merge_step: bool = False # deprecated
 
     def check_valid(self, *, M: int, N: int, sampling_frequency: float, channel_locations: npt.NDArray[np.float32]):

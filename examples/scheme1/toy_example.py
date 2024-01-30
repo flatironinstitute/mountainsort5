@@ -8,7 +8,6 @@ import spikeinterface.comparison as sc
 import mountainsort5 as ms5
 from mountainsort5.util import create_cached_recording
 from generate_visualization_output import generate_visualization_output
-from spikeforest.load_spikeforest_recordings.SFRecording import SFRecording
 import spikeinterface as si
 
 def main():
@@ -32,6 +31,7 @@ def main():
             recording_cached,
             sorting_parameters=ms5.Scheme1SortingParameters()
         )
+        assert isinstance(sorting, si.BaseSorting)
 
     elapsed_sec = time.time() - timer
     duration_sec = recording.get_total_duration()
@@ -44,6 +44,7 @@ def main():
     #######################################################################
 
     if os.getenv('GENERATE_VISUALIZATION_OUTPUT') == '1':
+        from spikeforest.load_spikeforest_recordings.SFRecording import SFRecording
         rec = SFRecording({
             'name': 'toy_example',
             'studyName': 'toy_example',

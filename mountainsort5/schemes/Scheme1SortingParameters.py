@@ -16,7 +16,7 @@ class Scheme1SortingParameters:
     - snippet_mask_radius: the radius (in units of channel locations) for making a snippet around the central channel
     - npca_per_channel: the number of PCA components per channel for initial dimension reduction
     - npca_per_subdivision: the number of PCA components to compute for each subdivision of clustering
-    - skip_alignment: whether to skip the alignment step (if None, then False unless overridden by quip)
+    - skip_alignment: whether to skip the alignment step (if None, then False)
     """
     detect_threshold: float = 5.5
     detect_channel_radius: Union[float, None] = None

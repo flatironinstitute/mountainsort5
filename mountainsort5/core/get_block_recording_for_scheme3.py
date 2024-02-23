@@ -49,7 +49,7 @@ class BlockRecordingSegment(si.BaseRecordingSegment):
 
     def get_traces(self, start_frame: Union[int, None] = None,
         end_frame: Union[int, None] = None,
-        channel_indices: Union[List, None] = None
+        channel_indices=None
     ):
         if start_frame is None:
             start_frame = 0

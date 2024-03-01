@@ -1,18 +1,17 @@
-### Imports
+# This is an example script provided by Joshua Melander, March 2024
+
+# Imports
 import mountainsort5 as ms5
 from mountainsort5.util import load_binary_recording, save_binary_recording
 import spikeinterface.full as si
-import numpy as np
-import time
-import matplotlib.pyplot as plt
 
-### Constants
+# Constants
 scheme = 2
 save_rec = True
 sort = True
 extract_waveforms = True
 
-### Path definitions
+# Path definitions
 
 imec_path = '/path/to/spikeglx/data_g0'
 
@@ -20,7 +19,7 @@ rec_path = '/path/to/sorting/rec'
 sorter_path = '/path/to/sorting/sorter_output'
 waveforms_path = '/path/to/sorting/waveforms'
 
-### Preprocess recording and save
+# Preprocess recording and save
 if save_rec:
     # Preprocess
     raw_recording = si.read_spikeglx(imec_path, stream_id="imec0.ap")
@@ -42,8 +41,9 @@ if save_rec:
     print("    + Recording saved...")
 
 
-### Load cached recording no-matter-what
+# Load cached recording no-matter-what
 cached_recording = load_binary_recording(rec_path)
+assert isinstance(cached_recording, si.BaseRecording)
 print("    + Cached recording loaded...")
 
 if sort:
@@ -72,6 +72,7 @@ if sort:
             recording=cached_recording,
             sorting_parameters=ms5.Scheme2SortingParameters(**sorting_params),
         )
+        assert isinstance(sorting, si.BaseSorting)
 
     elif scheme == 3:
         sorting = ms5.sorting_scheme3(
@@ -81,6 +82,9 @@ if sort:
                 block_duration_sec=60 * 5,
             ),
         )
+        assert isinstance(sorting, si.BaseSorting)
+    else:
+        raise ValueError(f"Scheme not supported: {scheme}")
 
     print("    + Sorting completed...")
     # max_num_snippets_per_training_batch=1000
@@ -89,10 +93,11 @@ if sort:
     print("    + Sorting saved...")
 
 
-### Extract waveforms
+# Extract waveforms
 if extract_waveforms:
     print("    + Sorting loaded...")
     sorting = si.read_numpy_sorting_folder(sorter_path)
+    assert isinstance(sorting, si.BaseSorting)
 
     job_kwargs = dict(n_jobs=64, chunk_duration="5s", progress_bar=True)
     cached_recording.annotate(is_filtered=True)
@@ -109,11 +114,8 @@ if extract_waveforms:
 
     locations = si.compute_unit_locations(waveforms)
 
-### Load the results
+# Load the results
 waveforms = si.load_waveforms(waveforms_path)
 sorting = waveforms.sorting
 noise = si.compute_noise_levels(waveforms)
 print("    + Waveforms extracted...")
-
-
-

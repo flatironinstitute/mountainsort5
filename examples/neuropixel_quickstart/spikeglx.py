@@ -1,4 +1,5 @@
 # This is an example script provided by Joshua Melander, March 2024
+# Note: if using Neuropixels 2.0, you may need to install the most recent python-neo package from the github repository
 
 # Imports
 import mountainsort5 as ms5

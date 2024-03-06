@@ -84,6 +84,11 @@ Scheme 2: [examples/scheme2/toy_example.py](./examples/scheme2/toy_example.py)
 
 Scheme 3: [examples/scheme3/toy_example.py](./examples/scheme3/toy_example.py)
 
+To give it a try with data collected using Neuropixels and SpikeGLX, adapt the following quickstart script:
+
+Neuropixel (SpikeGLX) Quickstart: [examples/neuropixel_quickstart/spikeglx.py](./examples/neuropixel_quickstart/spikeglx.py)
+
+
 ## Preprocessing
 
 MountainSort5 is designed to operate on preprocessed data. You should bandpass filter and whiten the recording as shown in the examples. SpikeInterface provides a variety of [lazy preprocessing tools](https://spikeinterface.readthedocs.io/en/latest/modules/preprocessing.html) so that intermediate files do not need to be stored to disk.

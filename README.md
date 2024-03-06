@@ -168,6 +168,8 @@ Thank you to the [SpikeInterface team](https://spikeinterface.readthedocs.io/en/
 
 Thank you to Jeff Soules for his work on sortingview and related visualization tools that make it possible to inspect the results of MountainSort5 and other algorithms.
 
+Thank you Joshua Melander for providing the guide on getting started with Neuropixels and SpikeGLX.
+
 Finally, thank you to all the users of the previous version of MountainSort who have provided feedback and suggestions.
 
 ## License

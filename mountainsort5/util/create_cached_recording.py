@@ -14,7 +14,7 @@ def create_cached_recording(recording: si.BaseRecording, *, folder: str, n_jobs:
         file_paths=[fname],
         dtype='float32',
         n_jobs=n_jobs,
-        chunk_duration='5s', # not sure how to best set this
+        chunk_duration='1s', # not sure how to best set this
     )
     ret = si.BinaryRecordingExtractor(
         file_paths=[fname],

@@ -84,6 +84,11 @@ Scheme 2: [examples/scheme2/toy_example.py](./examples/scheme2/toy_example.py)
 
 Scheme 3: [examples/scheme3/toy_example.py](./examples/scheme3/toy_example.py)
 
+To give it a try with data collected using Neuropixels and SpikeGLX, adapt the following quickstart script:
+
+Neuropixel (SpikeGLX) Quickstart: [examples/neuropixel_quickstart/spikeglx.py](./examples/neuropixel_quickstart/spikeglx.py)
+
+
 ## Preprocessing
 
 MountainSort5 is designed to operate on preprocessed data. You should bandpass filter and whiten the recording as shown in the examples. SpikeInterface provides a variety of [lazy preprocessing tools](https://spikeinterface.readthedocs.io/en/latest/modules/preprocessing.html) so that intermediate files do not need to be stored to disk.
@@ -162,6 +167,8 @@ Thank you to Alex Barnett, Leslie Greengard, and Jason Chung for their work on t
 Thank you to the [SpikeInterface team](https://spikeinterface.readthedocs.io/en/latest/authors.html), especially Alessio Buccino and Samuel Garcia, for their work on the SpikeInterface framework, which supports pre- and post-processing and makes it easy to use MountainSort5 with a variety of file formats.
 
 Thank you to Jeff Soules for his work on sortingview and related visualization tools that make it possible to inspect the results of MountainSort5 and other algorithms.
+
+Thank you Joshua Melander for providing the guide on getting started with Neuropixels and SpikeGLX.
 
 Finally, thank you to all the users of the previous version of MountainSort who have provided feedback and suggestions.
 

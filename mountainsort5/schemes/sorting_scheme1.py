@@ -202,7 +202,7 @@ def sorting_scheme1(
     for k in range(1, K + 1):
         inds = np.where(labels == k)[0]
         if len(inds) == 0:
-            aa[k - 1] = np.Inf
+            aa[k - 1] = np.inf
     new_labels_mapping = np.argsort(np.argsort(aa)) + 1 # too tricky! my head aches right now
     labels = new_labels_mapping[labels - 1]
     tt.report()
@@ -271,7 +271,7 @@ def align_templates(templates: npt.NDArray[np.float32]):
 
 def compute_pairwise_optimal_offset(template1: npt.NDArray[np.float32], template2: npt.NDArray[np.float32]):
     T = template1.shape[0]
-    best_inner_product = -np.Inf
+    best_inner_product = -np.inf
     best_offset = 0
     for offset in range(T):
         inner_product = np.sum(np.roll(template1, shift=offset, axis=0) * template2)

@@ -13,8 +13,9 @@ from mountainsort5.core.get_times_labels_from_sorting import get_times_labels_fr
 
 def test_compute_pca_features():
     x = np.random.normal(size=(100, 20)).astype(np.float32)
-    features = compute_pca_features(x, npca=10)
-    assert features.shape == (100, 10)
+    for svd_solver in ['auto', 'full', 'covariance_eigh', 'arpack', 'randomized']:
+        features = compute_pca_features(x, npca=10, svd_solver=svd_solver)
+        assert features.shape == (100, 10)
 
 def test_compute_templates():
     L = 1000

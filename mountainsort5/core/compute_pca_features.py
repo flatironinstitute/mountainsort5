@@ -32,5 +32,5 @@ def compute_pca_features(
     if L == 0 or D == 0:
         return np.zeros((0, npca_2), dtype=np.float32)
     pca = decomposition.PCA(n_components=npca_2, svd_solver=svd_solver)
-    print(pca.whiten)
+
     return pca.fit_transform(X)

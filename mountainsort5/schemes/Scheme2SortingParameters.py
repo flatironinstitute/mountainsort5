@@ -47,7 +47,7 @@ class Scheme2SortingParameters:
     training_duration_sec: Union[float, None] = None
     training_recording_sampling_mode: Literal['initial', 'uniform'] = 'initial'
     classification_chunk_sec: Union[float, None] = None
-    phase1_svd_solver: Literal['auto', 'full', 'covariance_eigh', 'arpack', 'randomized'] = 'auto'
+    phase_1_svd_solver: Literal['auto', 'full', 'covariance_eigh', 'arpack', 'randomized'] = 'auto'
 
     def check_valid(self, *, M: int, N: int, sampling_frequency: float, channel_locations: npt.NDArray[np.float32]):
         """Internal function for checking validity of parameters"""

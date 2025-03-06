@@ -2,7 +2,7 @@ import numpy as np
 import numpy.typing as npt
 
 
-def remove_duplicate_events(times: npt.NDArray[np.intp], labels: npt.NDArray[np.intp], *, tol: int) -> npt.NDArray[np.intp]:
+def remove_duplicate_events(times: npt.NDArray, labels: npt.NDArray, *, tol: int) -> npt.NDArray:
     new_labels = np.array(labels)
     unit_ids = np.unique(new_labels)
     for unit_id in unit_ids:
@@ -13,7 +13,7 @@ def remove_duplicate_events(times: npt.NDArray[np.intp], labels: npt.NDArray[np.
     inds_nonzero = np.nonzero(new_labels)[0]
     return inds_nonzero
 
-def find_duplicate_times(times: npt.NDArray[np.intp], *, tol: int) -> npt.NDArray[np.intp]:
+def find_duplicate_times(times: npt.NDArray, *, tol: int) -> npt.NDArray:
     ret: list[np.int32] = []
     deleted = np.zeros((len(times),), dtype=np.int16)
     for i1 in range(len(times)):

@@ -17,8 +17,8 @@ from ..core.Timer import Timer
 class SortingSchemeExtraOutput:
     templates: npt.NDArray[np.float32]  # K x T x M
     peak_channel_indices: List[int]
-    times: npt.NDArray[np.intp]
-    labels: npt.NDArray[np.intp]
+    times: npt.NDArray
+    labels: npt.NDArray
 
 def sorting_scheme1(
     recording: si.BaseRecording, *,
@@ -223,7 +223,7 @@ def sorting_scheme1(
     else:
         return sorting
 
-def remove_duplicate_times(times: npt.NDArray[np.intp], labels: npt.NDArray[np.intp]):
+def remove_duplicate_times(times: npt.NDArray, labels: npt.NDArray):
     if len(times) == 0:
         return times, labels
     inds = np.where(np.diff(times) > 0)[0]
@@ -282,7 +282,7 @@ def compute_pairwise_optimal_offset(template1: npt.NDArray[np.float32], template
         best_offset = best_offset - T
     return best_offset, best_inner_product
 
-def align_snippets(snippets: npt.NDArray[np.float32], offsets: npt.NDArray[np.intp], labels: npt.NDArray[np.intp]):
+def align_snippets(snippets: npt.NDArray[np.float32], offsets: npt.NDArray, labels: npt.NDArray):
     if len(labels) == 0:
         return snippets
     snippets2 = np.zeros_like(snippets)
@@ -291,7 +291,7 @@ def align_snippets(snippets: npt.NDArray[np.float32], offsets: npt.NDArray[np.in
         snippets2[inds] = np.roll(snippets[inds], shift=offsets[k - 1], axis=1)
     return snippets2
 
-def offset_times(times: npt.NDArray[np.intp], offsets: npt.NDArray[np.intp], labels: npt.NDArray[np.intp]):
+def offset_times(times: npt.NDArray, offsets: npt.NDArray, labels: npt.NDArray):
     if len(labels) == 0:
         return times
     times2 = np.zeros_like(times)

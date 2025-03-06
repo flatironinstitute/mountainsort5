@@ -7,8 +7,8 @@ def extract_snippets(
     traces: npt.NDArray[np.float32], *,
     channel_locations: Union[npt.NDArray[np.float32], None],
     mask_radius: Union[float, None],
-    times: npt.NDArray[np.intp],
-    channel_indices: Union[npt.NDArray[np.intp], None],
+    times: npt.NDArray,
+    channel_indices: Union[npt.NDArray, None],
     T1: int,
     T2: int
 ) -> npt.NDArray[np.float32]:
@@ -42,7 +42,7 @@ def extract_snippets(
 
 def extract_snippets_in_channel_neighborhood(
     traces: npt.NDArray[np.float32], *,
-    times: npt.NDArray[np.intp],
+    times: npt.NDArray,
     neighborhood: Union[List[int], None],
     T1: int,
     T2: int

@@ -46,7 +46,7 @@ def sorting_scheme3(
     blocks = get_time_chunks(np.int64(recording.get_num_samples()), chunk_size=np.int32(block_size), padding=np.int32(1000))
 
     times_list: list[npt.NDArray[np.int64]] = []
-    labels_list: list[npt.NDArray[np.intp]] = []
+    labels_list: list[npt.NDArray] = []
     last_label_used = 0
     previous_snippet_classifiers: Union[Dict[int, SnippetClassifier], None] = None
     for i, chunk in enumerate(blocks):
@@ -67,7 +67,7 @@ def sorting_scheme3(
         times0, labels0 = get_times_labels_from_sorting(subsorting)
         valid_inds = np.where((times0 >= chunk.padding_left) & (times0 < chunk.padding_left + (chunk.end - chunk.start)))[0]
         times0: npt.NDArray[np.int64] = times0[valid_inds]
-        labels0: npt.NDArray[np.intp] = labels0[valid_inds]
+        labels0: npt.NDArray = labels0[valid_inds]
         times0 = times0.astype(np.int64) + chunk.start - np.int64(chunk.padding_left)
         if len(labels0) > 0:
             last_label_used = max(last_label_used, np.max(labels0.astype(int)))

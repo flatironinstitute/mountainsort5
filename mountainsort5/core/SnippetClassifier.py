@@ -31,7 +31,7 @@ class SnippetClassifier:
         X = self.pca_model.transform(all_training_snippets.reshape(L, self.T * self.M))
         self.nearest_neighbor_model = NearestNeighbors(n_neighbors=2)
         self.nearest_neighbor_model.fit(X)
-    def classify_snippets(self, snippets: npt.NDArray[np.float32]) -> Tuple[Union[npt.NDArray[np.intp], None], Union[npt.NDArray[np.intp], None]]:
+    def classify_snippets(self, snippets: npt.NDArray[np.float32]) -> Tuple[Union[npt.NDArray, None], Union[npt.NDArray, None]]:
         if self.pca_model is None:
             raise Exception('self.pca_model is None, which probably means that fit() was not called.') # pragma: no cover
         Y = self.pca_model.transform(snippets.reshape(snippets.shape[0], self.T * self.M))

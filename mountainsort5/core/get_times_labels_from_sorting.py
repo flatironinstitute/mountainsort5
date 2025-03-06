@@ -4,7 +4,7 @@ import numpy.typing as npt
 import spikeinterface as si
 
 
-def get_times_labels_from_sorting(sorting: si.BaseSorting) -> Tuple[npt.NDArray[np.int64], npt.NDArray[np.intp]]:
+def get_times_labels_from_sorting(sorting: si.BaseSorting) -> Tuple[npt.NDArray[np.int64], npt.NDArray]:
     """Get times and labels from a sorting object
     Inputs:
         sorting: a sorting object

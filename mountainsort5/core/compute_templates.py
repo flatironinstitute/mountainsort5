@@ -2,7 +2,7 @@ import numpy as np
 import numpy.typing as npt
 
 
-def compute_templates(snippets: npt.NDArray[np.float32], labels: npt.NDArray[np.int32]):
+def compute_templates(snippets: npt.NDArray[np.float32], labels: npt.NDArray[np.intp]):
     """Compute templates from snippets and labels
 
     Args:

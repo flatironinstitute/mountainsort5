@@ -13,7 +13,7 @@ def detect_spikes(
     margin_left: int,
     margin_right: int,
     verbose: bool
-) -> Tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
+) -> Tuple[npt.NDArray[np.intp], npt.NDArray[np.intp]]:
     N = traces.shape[0]
     M = traces.shape[1]
 

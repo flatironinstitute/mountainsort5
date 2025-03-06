@@ -210,7 +210,7 @@ def sorting_scheme2(
     print(f'Chunk size: {chunk_size / recording.sampling_frequency} sec')
     chunks = get_time_chunks(np.int64(recording.get_num_samples()), chunk_size=np.int32(chunk_size), padding=np.int32(1000))
     times_list: list[npt.NDArray[np.int64]] = []
-    labels_list: list[npt.NDArray[np.int32]] = []
+    labels_list: list[npt.NDArray[np.intp]] = []
     labels_reference_list = [] if reference_snippet_classifiers is not None else None
     for i, chunk in enumerate(chunks):
         print(f'Time chunk {i + 1} of {len(chunks)}')
@@ -266,26 +266,26 @@ def sorting_scheme2(
 
         # remove events with label 0
         valid_inds = np.where(labels_chunk > 0)[0]
-        times_chunk: npt.NDArray[np.int32] = times_chunk[valid_inds]
-        labels_chunk: npt.NDArray[np.int32] = labels_chunk[valid_inds]
+        times_chunk: npt.NDArray[np.intp] = times_chunk[valid_inds]
+        labels_chunk: npt.NDArray[np.intp] = labels_chunk[valid_inds]
         labels_reference_chunk = labels_reference_chunk[valid_inds] if labels_reference_chunk is not None else None
 
         # now that we offset them we need to re-sort
         sort_inds2 = np.argsort(times_chunk)
-        times_chunk: npt.NDArray[np.int32] = times_chunk[sort_inds2]
-        labels_chunk: npt.NDArray[np.int32] = labels_chunk[sort_inds2]
+        times_chunk: npt.NDArray[np.intp] = times_chunk[sort_inds2]
+        labels_chunk: npt.NDArray[np.intp] = labels_chunk[sort_inds2]
         labels_reference_chunk = labels_reference_chunk[sort_inds2] if labels_reference_chunk is not None else None
 
         print('Removing duplicates')
         new_inds = remove_duplicate_events(times_chunk, labels_chunk, tol=time_radius)
-        times_chunk: npt.NDArray[np.int32] = times_chunk[new_inds]
-        labels_chunk: npt.NDArray[np.int32] = labels_chunk[new_inds]
+        times_chunk: npt.NDArray[np.intp] = times_chunk[new_inds]
+        labels_chunk: npt.NDArray[np.intp] = labels_chunk[new_inds]
         labels_reference_chunk = labels_reference_chunk[new_inds] if labels_reference_chunk is not None else None
 
         # remove events in the margins
         valid_inds = np.where((chunk.padding_left <= times_chunk) & (times_chunk < chunk.total_size - chunk.padding_right))[0]
-        times_chunk: npt.NDArray[np.int32] = times_chunk[valid_inds]
-        labels_chunk: npt.NDArray[np.int32] = labels_chunk[valid_inds]
+        times_chunk: npt.NDArray[np.intp] = times_chunk[valid_inds]
+        labels_chunk: npt.NDArray[np.intp] = labels_chunk[valid_inds]
         labels_reference_chunk = labels_reference_chunk[valid_inds] if labels_reference_chunk is not None else None
 
         # don't forget to cast to int64 add the chunk start time
@@ -303,7 +303,7 @@ def sorting_scheme2(
     print('Concatenating results')
     tt = Timer('SCHEME2 concatenating results')
     times_concat: npt.NDArray[np.int64] = np.concatenate(times_list)
-    labels_concat: npt.NDArray[np.int32] = np.concatenate(labels_list)
+    labels_concat: npt.NDArray[np.intp] = np.concatenate(labels_list)
     labels_reference_concat = np.concatenate(labels_reference_list) if labels_reference_list is not None else None
     tt.report()
 
@@ -337,7 +337,7 @@ def sorting_scheme2(
 # 1. For each unit, find the matching unit in the reference (has to be a MUTUAL >0.5 overlap)
 # 2. If the matching unit is found, then map the unit to the matching unit
 # 3. If the matching unit is not found, then map it to the smallest unused label starting with label_offset+1
-def get_labels_to_reference_labels_mapping(labels: npt.NDArray[np.int32], labels_reference: npt.NDArray[np.int32], *, label_offset: int) -> Dict[int, int]:
+def get_labels_to_reference_labels_mapping(labels: npt.NDArray[np.intp], labels_reference: npt.NDArray[np.intp], *, label_offset: int) -> Dict[int, int]:
     mapping: Dict[int, Union[int, None]] = {}
     unique_labels = np.sort(np.unique(labels))
     last_used_k = label_offset

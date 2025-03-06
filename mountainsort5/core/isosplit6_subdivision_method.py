@@ -16,7 +16,7 @@ from typing import Union
 def isosplit6_subdivision_method(
     X: npt.NDArray[np.float32], *,
     npca_per_subdivision: int,
-    inds: Union[npt.NDArray[np.int32], None] = None # pass in inds so that we don't keep making copies of the array
+    inds: Union[npt.NDArray[np.intp], None] = None # pass in inds so that we don't keep making copies of the array
 ):
     """Isosplit6 subdivision method
 

@@ -18,7 +18,7 @@ def get_times_labels_from_sorting(sorting: si.BaseSorting) -> Tuple[npt.NDArray[
     labels_list = []
     for unit_id in sorting.get_unit_ids():
         times0 = sorting.get_unit_spike_train(unit_id=unit_id)
-        labels0 = np.ones(times0.shape, dtype=np.int32) * unit_id
+        labels0 = np.ones(times0.shape, dtype=np.int32) * int(unit_id)
         times_list.append(times0.astype(np.int64))
         labels_list.append(labels0)
     if len(times_list) > 0:

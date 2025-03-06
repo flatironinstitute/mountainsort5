@@ -8,7 +8,6 @@ import spikeinterface.comparison as sc
 import mountainsort5 as ms5
 from mountainsort5.util import create_cached_recording
 import spikeforest as sf
-from generate_visualization_output import generate_visualization_output
 
 def main():
     paired_kampff_uri = 'sha1://b8b571d001f9a531040e79165e8f492d758ec5e0?paired-kampff-spikeforest-recordings.json'
@@ -61,11 +60,6 @@ def main():
     print('Comparing with truth')
     comparison: sc.GroundTruthComparison = sc.compare_sorter_to_ground_truth(gt_sorting=sorting_true, tested_sorting=sorting)
     print(comparison.get_performance())
-
-    #######################################################################
-
-    if os.getenv('GENERATE_VISUALIZATION_OUTPUT') == '1':
-        generate_visualization_output(rec=rec, recording_preprocessed=recording_preprocessed, sorting=sorting, sorting_true=sorting_true)
 
 if __name__ == '__main__':
     main()

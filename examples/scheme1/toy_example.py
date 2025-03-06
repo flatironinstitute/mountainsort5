@@ -7,7 +7,6 @@ import spikeinterface.preprocessing as spre
 import spikeinterface.comparison as sc
 import mountainsort5 as ms5
 from mountainsort5.util import create_cached_recording
-from generate_visualization_output import generate_visualization_output
 import spikeinterface as si
 
 def main():
@@ -41,22 +40,6 @@ def main():
     comparison = sc.compare_sorter_to_ground_truth(gt_sorting=sorting_true, tested_sorting=sorting)
     print(comparison.get_performance())
 
-    #######################################################################
-
-    if os.getenv('GENERATE_VISUALIZATION_OUTPUT') == '1':
-        from spikeforest.load_spikeforest_recordings.SFRecording import SFRecording
-        rec = SFRecording({
-            'name': 'toy_example',
-            'studyName': 'toy_example',
-            'studySetName': 'toy_example',
-            'sampleRateHz': recording_preprocessed.get_sampling_frequency(),
-            'numChannels': recording_preprocessed.get_num_channels(),
-            'durationSec': recording_preprocessed.get_total_duration(),
-            'numTrueUnits': sorting_true.get_num_units(),
-            'sortingTrueObject': {},
-            'recordingObject': {}
-        })
-        generate_visualization_output(rec=rec, recording_preprocessed=recording_preprocessed, sorting=sorting, sorting_true=sorting_true)
 
 if __name__ == '__main__':
     main()

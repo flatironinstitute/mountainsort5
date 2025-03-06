@@ -1,7 +1,5 @@
-import os
 import time
 from tempfile import TemporaryDirectory
-import shutil
 import numpy as np
 import spikeinterface.extractors as se
 import spikeinterface.preprocessing as spre

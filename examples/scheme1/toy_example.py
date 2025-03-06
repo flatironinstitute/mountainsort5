@@ -1,4 +1,3 @@
-import os
 import time
 from tempfile import TemporaryDirectory
 import numpy as np

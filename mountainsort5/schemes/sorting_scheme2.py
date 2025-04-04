@@ -1,4 +1,5 @@
 from typing import Dict, Tuple, List, Union
+from packaging import version
 import numpy as np
 import numpy.typing as npt
 import math
@@ -325,7 +326,11 @@ def sorting_scheme2(
     # Now create a new sorting object from the times and labels results
     print('Creating sorting object')
     tt = Timer('SCHEME2 creating sorting object')
-    sorting2 = si.NumpySorting.from_times_labels([times_concat], [labels_concat], sampling_frequency=recording.sampling_frequency)
+    # spikeinterface changed function name in version 0.102.2. They also stopped using the dev tag so parsing with packaging is safer
+    if version.parse(si.__version__) < version.parse("0.102.2"):
+        sorting2 = si.NumpySorting.from_times_labels([times_concat], [labels_concat], sampling_frequency=recording.sampling_frequency)
+    else:
+        sorting2 = si.NumpySorting.from_samples_and_labels([times_concat], [labels_concat], sampling_frequency=recording.sampling_frequency)
     tt.report()
 
     if return_snippet_classifiers:

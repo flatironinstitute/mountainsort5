@@ -1,4 +1,5 @@
 from typing import Dict, Union
+from packaging import version
 import numpy as np
 import numpy.typing as npt
 import spikeinterface as si
@@ -78,6 +79,10 @@ def sorting_scheme3(
     labels_concat = np.concatenate(labels_list)
 
     # Now create a new sorting object from the times and labels results
-    sorting2 = si.NumpySorting.from_times_labels([times_concat], [labels_concat], sampling_frequency=recording.sampling_frequency)
+    # spikeinterface changed function name in version 0.102.2. They also stopped using the dev tag so parsing with packaging is safer
+    if version.parse(si.__version__) < version.parse("0.102.2"):
+        sorting2 = si.NumpySorting.from_times_labels([times_concat], [labels_concat], sampling_frequency=recording.sampling_frequency)
+    else:
+        sorting2 = si.NumpySorting.from_samples_and_labels([times_concat], [labels_concat], sampling_frequency=recording.sampling_frequency)
 
     return sorting2

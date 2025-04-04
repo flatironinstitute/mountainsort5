@@ -20,7 +20,8 @@ setup(
     install_requires=[
         'spikeinterface>=0.97.1',
         'isosplit6>=0.1.0',
-        'scikit-learn'
+        'scikit-learn',
+        'packaging'
     ],
     tests_require=[
         "pytest",

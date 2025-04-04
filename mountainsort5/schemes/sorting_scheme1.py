@@ -1,5 +1,6 @@
 from typing import List
 from dataclasses import dataclass
+from packaging import version
 import numpy as np
 import numpy.typing as npt
 import math
@@ -209,7 +210,11 @@ def sorting_scheme1(
 
     print('Creating sorting object')
     tt = Timer('creating sorting object')
-    sorting = si.NumpySorting.from_times_labels(times_list=[times], labels_list=[labels], sampling_frequency=sampling_frequency)
+       # spikeinterface changed function name in version 0.102.2. They also stopped using the dev tag so parsing with packaging is safer
+    if version.parse(si.__version__) < version.parse("0.102.2"):
+        sorting = si.NumpySorting.from_times_labels([times], [labels], sampling_frequency=sampling_frequency)
+    else:
+        sorting = si.NumpySorting.from_samples_and_labels([times], [labels], sampling_frequency=sampling_frequency)
     tt.report()
 
     if return_extra_output:

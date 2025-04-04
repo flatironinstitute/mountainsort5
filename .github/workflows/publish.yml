@@ -15,10 +15,9 @@ jobs:
     - name: Install packages needed by spikeinterface
       run: pip install h5py pandas networkx
     - name: Install packages needed for tests
-      # pyright 1.1.336 produces annoying errors
-      run: pip install pytest pytest-cov pyright==1.1.335 black spikeforest
+      run: pip install pytest pytest-cov black spikeforest
     - name: Run tests
-      run: pyright && pytest tests/
+      run: pytest tests/
     - name: Build
       run: python3 -m pip install --upgrade build && python3 -m build
     - name: Publish package

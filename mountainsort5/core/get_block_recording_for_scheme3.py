@@ -57,8 +57,17 @@ class BlockRecordingSegment(si.BaseRecordingSegment):
             end_frame = self.get_num_samples()
 
         # Get the traces from the parent recording
-        return self._recording._recording_segments[0].get_traces(
-            start_frame=start_frame + self._start_frame,
-            end_frame=end_frame + self._start_frame,
-            channel_indices=channel_indices
-        )
+        # SpikeInterface v<0.105.0 used to have a "_recording_segments" attribute,
+        # but in v0.105.0 and later it was changed to "segments"
+        if hasattr(self._recording, '_recording_segments'):
+            return self._recording._recording_segments[0].get_traces(
+                start_frame=start_frame + self._start_frame,
+                end_frame=end_frame + self._start_frame,
+                channel_indices=channel_indices
+            )
+        else:
+            return self._recording.segments[0].get_traces(
+                start_frame=start_frame + self._start_frame,
+                end_frame=end_frame + self._start_frame,
+                channel_indices=channel_indices
+            )

@@ -9,6 +9,7 @@ from mountainsort5.core.get_sampled_recording_for_training import get_sampled_re
 from mountainsort5.core.get_block_recording_for_scheme3 import get_block_recording_for_scheme3
 from mountainsort5.core.isosplit6_subdivision_method import isosplit6_subdivision_method
 from mountainsort5.core.get_times_labels_from_sorting import get_times_labels_from_sorting
+from mountainsort5.core.SnippetClassifier import SnippetClassifier
 
 
 def test_compute_pca_features():
@@ -195,3 +196,64 @@ def test_get_times_labels_from_sorting():
     times2, labels2 = get_times_labels_from_sorting(sorting2)
     assert len(times2) == 0
     assert len(labels2) == 0
+
+def test_snippet_classifier_is_deterministic():
+    # The classifier must use an EXACT, deterministic PCA solver, not sklearn's
+    # stochastic 'randomized' (which 'auto' selects for 500 < n_samples < 10*n_features,
+    # the common per-classifier regime). Solver choice: 'covariance_eigh' when there are
+    # at least as many samples as features (L >= n_features), else exact 'full' SVD;
+    # both are deterministic. Verify the right exact solver is picked in each regime and
+    # that two fits on identical data give bit-identical PCA components.
+    rng = np.random.default_rng(1)
+    T, M = 40, 4
+    n_features = T * M  # 160
+
+    def fit_on(batch_sizes):
+        sc = SnippetClassifier(npca=None)
+        snips = [(rng.standard_normal((s, T, M)).astype(np.float32), lab) for lab, s in enumerate(batch_sizes)]
+        sc2 = SnippetClassifier(npca=None)
+        for snip, lab in snips:
+            sc.add_training_snippets(snip.copy(), label=lab, offset=0)
+            sc2.add_training_snippets(snip.copy(), label=lab, offset=0)
+        sc.fit()
+        sc2.fit()
+        return sc, sc2
+
+    # L = 770 >= n_features (160)  -> covariance_eigh
+    a, b = fit_on([200, 200, 200, 170])
+    assert a.pca_model.n_features_in_ == n_features  # sanity: n_features = T*M = 160
+    assert a.pca_model._fit_svd_solver == "covariance_eigh"
+    assert np.array_equal(a.pca_model.components_, b.pca_model.components_)  # bit-reproducible
+
+    # L = 100 < n_features (160)  -> full
+    c, d = fit_on([100])
+    assert c.pca_model._fit_svd_solver == "full"
+    assert np.array_equal(c.pca_model.components_, d.pca_model.components_)
+
+    # never the stochastic solver
+    assert a.pca_model._fit_svd_solver != "randomized"
+    assert c.pca_model._fit_svd_solver != "randomized"
+
+
+def test_deterministic_pca_solver_selection():
+    from mountainsort5.core.pca_solver import deterministic_pca_solver
+    assert deterministic_pca_solver(5000, 160) == "covariance_eigh"   # L >= D, D <= cap (tetrode-like)
+    assert deterministic_pca_solver(100, 160) == "full"               # L < D, D <= cap
+    assert deterministic_pca_solver(272000, 21120) == "randomized"    # D > cap (NP whole-probe phase-1)
+    assert deterministic_pca_solver(9000, 8000) == "covariance_eigh"  # at the cap, L >= D
+    assert deterministic_pca_solver(9000, 8001) == "randomized"       # just over the cap
+
+
+def test_compute_pca_features_is_deterministic():
+    # compute_pca_features must be reproducible run-to-run in BOTH regimes:
+    # exact 'covariance_eigh'/'full' for modest n_features, and SEEDED 'randomized'
+    # for large n_features (the whole-probe phase-1 case). sklearn's unseeded 'auto'
+    # randomized would not be.
+    from mountainsort5.core.compute_pca_features import compute_pca_features
+    rng = np.random.default_rng(2)
+    # exact regime (D <= cap)
+    X_small = rng.standard_normal((2000, 200)).astype(np.float32)
+    assert np.array_equal(compute_pca_features(X_small, npca=30), compute_pca_features(X_small, npca=30))
+    # large-D randomized regime (D > cap) -> seeded, so still bit-reproducible
+    X_large = rng.standard_normal((300, 8200)).astype(np.float32)
+    assert np.array_equal(compute_pca_features(X_large, npca=20), compute_pca_features(X_large, npca=20))

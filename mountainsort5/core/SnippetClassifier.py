@@ -1,9 +1,12 @@
-from typing import List, Tuple, Union, Dict
+from dataclasses import dataclass
+from typing import Dict, List, Tuple, Union
+
 import numpy as np
 import numpy.typing as npt
-from dataclasses import dataclass
 from sklearn import decomposition
 from sklearn.neighbors import NearestNeighbors
+
+from .pca_solver import deterministic_pca_solver
 
 
 class SnippetClassifier:
@@ -26,9 +29,12 @@ class SnippetClassifier:
             effective_npca = self.npca
         else:
             effective_npca = max(12, self.M * 3)
-        self.pca_model = decomposition.PCA(n_components=min(effective_npca, L))
-        self.pca_model.fit(all_training_snippets.reshape(L, self.T * self.M))
-        X = self.pca_model.transform(all_training_snippets.reshape(L, self.T * self.M))
+        n_features = self.T * self.M
+        n_components = min(effective_npca, L)
+        svd_solver = deterministic_pca_solver(L, n_features)
+        self.pca_model = decomposition.PCA(n_components=n_components, svd_solver=svd_solver, random_state=0)
+        self.pca_model.fit(all_training_snippets.reshape(L, n_features))
+        X = self.pca_model.transform(all_training_snippets.reshape(L, n_features))
         self.nearest_neighbor_model = NearestNeighbors(n_neighbors=2)
         self.nearest_neighbor_model.fit(X)
     def classify_snippets(self, snippets: npt.NDArray[np.float32]) -> Tuple[Union[npt.NDArray, None], Union[npt.NDArray, None]]:

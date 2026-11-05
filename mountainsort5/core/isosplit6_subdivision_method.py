@@ -16,6 +16,7 @@ from typing import Union
 def isosplit6_subdivision_method(
     X: npt.NDArray[np.float32], *,
     npca_per_subdivision: int,
+    random_seed: int = 0,
     inds: Union[npt.NDArray, None] = None # pass in inds so that we don't keep making copies of the array
 ):
     """Isosplit6 subdivision method
@@ -23,6 +24,7 @@ def isosplit6_subdivision_method(
     Args:
         X: L x M array where L is the number of data points and M is the number of features
         npca_per_subdivision: number of pca components to use for each subdivision
+        random_seed: seed for PCA at every subdivision (default 0)
         inds: indices of the data points to use (optional)
 
     Returns:
@@ -35,7 +37,7 @@ def isosplit6_subdivision_method(
     L = X_sub.shape[0]
     if L == 0:
         return np.zeros((0,), dtype=np.int32)
-    features = compute_pca_features(X_sub, npca=npca_per_subdivision)
+    features = compute_pca_features(X_sub, npca=npca_per_subdivision, random_seed=random_seed)
     labels = isosplit6(features)
     if len(labels) > 0:
         K = int(np.max(labels))
@@ -68,8 +70,8 @@ def isosplit6_subdivision_method(
     else:
         inds1_b = inds1
         inds2_b = inds2
-    labels1 = isosplit6_subdivision_method(X, npca_per_subdivision=npca_per_subdivision, inds=inds1_b)
-    labels2 = isosplit6_subdivision_method(X, npca_per_subdivision=npca_per_subdivision, inds=inds2_b)
+    labels1 = isosplit6_subdivision_method(X, npca_per_subdivision=npca_per_subdivision, random_seed=random_seed, inds=inds1_b)
+    labels2 = isosplit6_subdivision_method(X, npca_per_subdivision=npca_per_subdivision, random_seed=random_seed, inds=inds2_b)
     K1 = int(np.max(labels1))
     # K2 = int(np.max(labels2))
     ret_labels = np.zeros(L, dtype=np.int32)

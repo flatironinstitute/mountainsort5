@@ -10,8 +10,10 @@ from .pca_solver import deterministic_pca_solver
 
 
 class SnippetClassifier:
-    def __init__(self, npca: Union[int, None]) -> None:
+    def __init__(self, npca: Union[int, None], *, random_seed: int = 0) -> None:
+        """Create a classifier with a seed for randomized PCA (ignored by exact solvers)."""
         self.npca = npca
+        self.random_seed = random_seed
         self.training_batches: List[TrainingBatch] = []
         self.pca_model = None
     def add_training_snippets(self, snippets: npt.NDArray[np.float32], label: int, offset: int):
@@ -32,7 +34,7 @@ class SnippetClassifier:
         n_features = self.T * self.M
         n_components = min(effective_npca, L)
         svd_solver = deterministic_pca_solver(L, n_features)
-        self.pca_model = decomposition.PCA(n_components=n_components, svd_solver=svd_solver, random_state=0)
+        self.pca_model = decomposition.PCA(n_components=n_components, svd_solver=svd_solver, random_state=self.random_seed)
         self.pca_model.fit(all_training_snippets.reshape(L, n_features))
         X = self.pca_model.transform(all_training_snippets.reshape(L, n_features))
         self.nearest_neighbor_model = NearestNeighbors(n_neighbors=2)

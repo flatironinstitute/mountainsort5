@@ -96,7 +96,8 @@ def sorting_scheme2(
             snippet_T1=sorting_parameters.snippet_T1,
             snippet_T2=sorting_parameters.snippet_T2,
             npca_per_channel=sorting_parameters.phase1_npca_per_channel,
-            npca_per_subdivision=sorting_parameters.phase1_npca_per_subdivision
+            npca_per_subdivision=sorting_parameters.phase1_npca_per_subdivision,
+            random_seed=sorting_parameters.random_seed
         )
     )
     assert isinstance(sorting1, si.BaseSorting)
@@ -145,7 +146,10 @@ def sorting_scheme2(
             channel_masks[m] = None
     snippet_classifiers: Dict[int, SnippetClassifier] = {} # by channel
     for m in range(M):
-        snippet_classifiers[m] = SnippetClassifier(npca=sorting_parameters.classifier_npca)
+        snippet_classifiers[m] = SnippetClassifier(
+            npca=sorting_parameters.classifier_npca,
+            random_seed=sorting_parameters.random_seed
+        )
         # Add random snippets to classifier with label 0 (a noise cluster for classification)
         uniformly_spread_times = np.floor(np.linspace(sorting_parameters.snippet_T1, training_traces.shape[0] - sorting_parameters.snippet_T2 - 1, sorting_parameters.max_num_snippets_per_training_batch)).astype(np.int32)
         random_snippets = extract_snippets_in_channel_neighborhood(

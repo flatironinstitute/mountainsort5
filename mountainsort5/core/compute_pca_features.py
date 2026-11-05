@@ -5,7 +5,7 @@ from sklearn import decomposition
 from .pca_solver import deterministic_pca_solver
 
 
-def compute_pca_features(X: npt.NDArray[np.float32], *, npca: int):
+def compute_pca_features(X: npt.NDArray[np.float32], *, npca: int, random_seed: int = 0):
     """Compute PCA features.
 
     Parameters
@@ -15,6 +15,8 @@ def compute_pca_features(X: npt.NDArray[np.float32], *, npca: int):
         number of features.
     npca : int
         Number of PCA features to return.
+    random_seed : int
+        Seed for randomized PCA (default 0). Ignored by exact PCA solvers.
 
     Returns
     -------
@@ -27,5 +29,5 @@ def compute_pca_features(X: npt.NDArray[np.float32], *, npca: int):
     if L == 0 or D == 0:
         return np.zeros((0, npca_2), dtype=np.float32)
     solver = deterministic_pca_solver(int(L), int(D))
-    pca = decomposition.PCA(n_components=npca_2, svd_solver=solver, random_state=0)
+    pca = decomposition.PCA(n_components=npca_2, svd_solver=solver, random_state=random_seed)
     return pca.fit_transform(X)

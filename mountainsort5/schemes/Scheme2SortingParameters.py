@@ -27,6 +27,8 @@ class Scheme2SortingParameters:
     - training_duration_sec: the duration of the training data (in seconds)
     - training_recording_sampling_mode: how to sample the training data. If 'initial', then the first training_duration_sec of the recording will be used. If 'uniform', then the training data will be sampled uniformly in 10-second chunks from the recording.
     - classification_chunk_sec: the duration of each chunk of data to use for classification (in seconds)
+    - random_seed: seed for randomized PCA in phase 1 clustering and classifier training
+      (default 0, ignored by exact PCA solvers). Threaded BLAS/OpenMP may still introduce small numerical differences.
     """
     phase1_detect_channel_radius: Union[float, None]
     detect_channel_radius: Union[float, None]
@@ -46,6 +48,7 @@ class Scheme2SortingParameters:
     training_duration_sec: Union[float, None] = None
     training_recording_sampling_mode: Literal['initial', 'uniform'] = 'initial'
     classification_chunk_sec: Union[float, None] = None
+    random_seed: int = 0
 
     def check_valid(self, *, M: int, N: int, sampling_frequency: float, channel_locations: npt.NDArray[np.float32]):
         """Internal function for checking validity of parameters"""

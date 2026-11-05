@@ -7,7 +7,7 @@ from .Scheme2SortingParameters import Scheme2SortingParameters
 class Scheme3SortingParameters:
     """Parameters for MountainSort sorting scheme 3
 
-    - block_sorting_parameters: Scheme2SortingParameters for individual blocks
+    - block_sorting_parameters: Scheme2SortingParameters for individual blocks, including random_seed
     - block_duration_sec: duration of each block
     """
     block_sorting_parameters: Scheme2SortingParameters

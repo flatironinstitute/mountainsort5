@@ -27,8 +27,11 @@ class Scheme2SortingParameters:
     - training_duration_sec: the duration of the training data (in seconds)
     - training_recording_sampling_mode: how to sample the training data. If 'initial', then the first training_duration_sec of the recording will be used. If 'uniform', then the training data will be sampled uniformly in 10-second chunks from the recording.
     - classification_chunk_sec: the duration of each chunk of data to use for classification (in seconds)
-    - random_seed: seed for randomized PCA in phase 1 clustering and classifier training
-      (default 0, ignored by exact PCA solvers). Threaded BLAS/OpenMP may still introduce small numerical differences.
+    - random_seed: seed for randomized PCA in phase 1 clustering and classifier training (default 0). The randomized
+      solver is only used when the number of PCA input features exceeds 8000 (see core/pca_solver.py). In practice
+      this only affects the phase 1 PCA on full snippets, whose input has num_channels * (snippet_T1 + snippet_T2)
+      features, i.e. more than 200 channels at the default snippet length. Otherwise all PCA is exact and the seed
+      has no effect on the output. Threaded BLAS/OpenMP may still introduce small numerical differences.
     """
     phase1_detect_channel_radius: Union[float, None]
     detect_channel_radius: Union[float, None]

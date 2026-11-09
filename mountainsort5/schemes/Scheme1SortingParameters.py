@@ -17,6 +17,8 @@ class Scheme1SortingParameters:
     - npca_per_channel: the number of PCA components per channel for initial dimension reduction
     - npca_per_subdivision: the number of PCA components to compute for each subdivision of clustering
     - skip_alignment: whether to skip the alignment step (if None, then False)
+    - random_seed: seed for randomized PCA during clustering (default 0, ignored by exact PCA solvers).
+      Threaded BLAS/OpenMP may still introduce small numerical differences.
     """
     detect_threshold: float = 5.5
     detect_channel_radius: Union[float, None] = None
@@ -29,6 +31,7 @@ class Scheme1SortingParameters:
     npca_per_subdivision: int = 10
     skip_alignment: Union[bool, None] = None
     pairwise_merge_step: bool = False # deprecated
+    random_seed: int = 0
 
     def check_valid(self, *, M: int, N: int, sampling_frequency: float, channel_locations: npt.NDArray[np.float32]):
         """Internal function for checking validity of parameters"""

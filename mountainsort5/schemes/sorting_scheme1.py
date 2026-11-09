@@ -108,14 +108,15 @@ def sorting_scheme1(
     npca = sorting_parameters.npca_per_channel * M
     print(f'Computing PCA features with npca={npca}')
     tt = Timer('compute_pca_features')
-    features = compute_pca_features(snippets.reshape((L, T * M)), npca=npca)
+    features = compute_pca_features(snippets.reshape((L, T * M)), npca=npca, random_seed=sorting_parameters.random_seed)
     tt.report()
 
     print(f'Isosplit6 clustering with npca_per_subdivision={sorting_parameters.npca_per_subdivision}')
     tt = Timer('isosplit6_subdivision_method')
     labels = isosplit6_subdivision_method(
         X=features,
-        npca_per_subdivision=sorting_parameters.npca_per_subdivision
+        npca_per_subdivision=sorting_parameters.npca_per_subdivision,
+        random_seed=sorting_parameters.random_seed
     )
     if len(labels) > 0:
         K = int(np.max(labels))
@@ -148,14 +149,15 @@ def sorting_scheme1(
 
         print(f'Computing PCA features with npca={npca}')
         tt = Timer('compute_pca_features')
-        features = compute_pca_features(snippets.reshape((L, T * M)), npca=npca)
+        features = compute_pca_features(snippets.reshape((L, T * M)), npca=npca, random_seed=sorting_parameters.random_seed)
         tt.report()
 
         print(f'Isosplit6 clustering with npca_per_subdivision={sorting_parameters.npca_per_subdivision}')
         tt = Timer('isosplit6_subdivision_method')
         labels = isosplit6_subdivision_method(
             X=features,
-            npca_per_subdivision=sorting_parameters.npca_per_subdivision
+            npca_per_subdivision=sorting_parameters.npca_per_subdivision,
+            random_seed=sorting_parameters.random_seed
         )
         if len(labels) > 0:
             K = int(np.max(labels))

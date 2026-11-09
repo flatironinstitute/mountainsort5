@@ -17,7 +17,10 @@ class Scheme1SortingParameters:
     - npca_per_channel: the number of PCA components per channel for initial dimension reduction
     - npca_per_subdivision: the number of PCA components to compute for each subdivision of clustering
     - skip_alignment: whether to skip the alignment step (if None, then False)
-    - random_seed: seed for randomized PCA during clustering (default 0, ignored by exact PCA solvers).
+    - random_seed: seed for randomized PCA (default 0). The randomized solver is only used when the number of
+      PCA input features exceeds 8000 (see core/pca_solver.py). In practice this only affects the PCA on full
+      snippets, whose input has num_channels * (snippet_T1 + snippet_T2) features, i.e. more than 200 channels at
+      the default snippet length. Otherwise all PCA is exact and the seed has no effect on the output.
       Threaded BLAS/OpenMP may still introduce small numerical differences.
     """
     detect_threshold: float = 5.5
